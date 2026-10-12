@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+{% set s = application_stats %}
+{% set pending = steps|rejectattr('done')|list %}
+{% set done_count = steps|length - pending|length %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+
+  <!-- greeting -->
+  <section data-reveal>
+    <p class="eyebrow" id="hello">Welcome back</p>
+    <h1 class="font-display mt-2">{{ student.full_name.split(' ')[0] }}, <span class="grad-text">let's move your search forward.</span></h1>
+  </section>
+
+  <!-- next step -->
+  <section data-reveal class="mt-8">
+    {% if pending %}
+    {% set nx = pending[0] %}
+    <a href="{{ nx.href }}" class="next-card group block relative overflow-hidden rounded-[28px] p-7 md:p-9 text-white">
+      <span class="orb orb1"></span><span class="orb orb2"></span>
+      <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="max-w-xl">
+          <p class="text-xs font-bold tracking-widest uppercase text-white/70">Your next step · {{ done_count + 1 }} of {{ steps|length }}</p>
+          <h2 class="mt-2 text-2xl md:text-3xl font-bold tracking-tight">{{ nx.label }}</h2>
+          <p class="mt-2 text-white/80">{{ nx.hint }}.</p>
+          <div class="mt-5 flex items-center gap-1.5">
+            {% for st in steps %}<span class="h-1.5 rounded-full transition-all {{ 'w-8 bg-white' if st.done else ('w-8 bg-white/50' if st == nx else 'w-3 bg-white/30') }}"></span>{% endfor %}
+          </div>
+        </div>
+        <span class="inline-flex items-center gap-2 self-start md:self-center rounded-full bg-white px-6 py-3.5 font-semibold text-brand-700 shadow-lg transition-transform group-hover:translate-x-1">Continue <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+    {% else %}
+    <div class="next-card relative overflow-hidden rounded-[28px] p-7 md:p-9 text-white">
+      <span class="orb orb1"></span><span class="orb orb2"></span>
+      <div class="relative"><p class="text-xs font-bold tracking-widest uppercase text-white/70">All set</p><h2 class="mt-2 text-2xl md:text-3xl font-bold tracking-tight">You're all set up. Keep the momentum going.</h2>
+      <a href="{{ url_for('internships') }}" class="mt-5 inline-flex rounded-full bg-white px-6 py-3.5 font-semibold text-brand-700 shadow-lg">Find new internships</a></div>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- numbers -->
+  <section class="mt-6 grid grid-cols-3 gap-3 md:gap-5">
+    {% for label, val, tint in [('Applications', s.total, 'mint'), ('Interviews', s.interviews_scheduled, 'lilac'), ('Offers', s.offers_received, 'sky')] %}
+    <a href="{{ url_for('applications_page') }}" data-reveal class="card card-hover p-4 md:p-6 block">
+      <p class="text-xs md:text-sm muted font-medium">{{ label }}</p>
+      <p class="mt-1 md:mt-2 text-3xl md:text-5xl font-bold tracking-tight tnum"><span data-count-to="{{ val }}">0</span></p>
+    </a>
+    {% endfor %}
+  </section>
+
+  <div class="mt-6 grid lg:grid-cols-5 gap-6 items-start">
+    <!-- coming up -->
+    <section data-reveal class="card lg:col-span-3">
+      <div class="px-6 pt-6 pb-2 flex items-center justify-between"><h2 class="font-bold text-lg">Coming up</h2><a href="{{ url_for('applications_page') }}" class="text-sm font-semibold text-brand-600 hover:underline">See all</a></div>
+      {% set rows = [] %}
+      {% for i in s.upcoming_deadlines %}{% set _ = rows.append(('Deadline', '#fef2f2', '#b91c1c', i.job_title ~ ' · ' ~ i.company, i.days_left ~ ' days left')) %}{% endfor %}
+      {% for i in s.upcoming_interviews %}{% set _ = rows.append(('Interview', '#f5f3ff', '#6d28d9', i.job_title ~ ' · ' ~ i.company, i.interview_date[:10])) %}{% endfor %}
+      {% for i in s.follow_ups %}{% set _ = rows.append(('Follow up', '#eff6ff', '#1d4ed8', (i.follow_up_note or 'Follow up') ~ ' · ' ~ i.company, 'due' if i.days_left <= 0 else i.days_left ~ ' days')) %}{% endfor %}
+      {% if rows %}
+      <ul class="px-3 pb-3">
+        {% for tag, bg, fg, text, when in rows[:6] %}
+        <li class="flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors hover:bg-soft"><span class="chip" style="background:{{ bg }};border-color:transparent;color:{{ fg }}">{{ tag }}</span><span class="flex-1 truncate text-sm font-medium">{{ text }}</span><span class="text-xs muted tnum">{{ when }}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="px-6 pb-8 pt-2 text-center"><div class="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-brand-600 float"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div><p class="font-semibold">Nothing due soon</p><p class="mt-1 text-sm muted">Deadlines and interviews you track will show up here.</p></div>
+      {% endif %}
+    </section>
+
+    <!-- quick actions -->
+    <section class="lg:col-span-2 grid gap-4">
+      {% for title, sub, href, path in [
+        ('Find internships','See roles that fit your profile', url_for('internships'), 'M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z'),
+        ('Ask your career coach','Skill gaps, cover letters, interview practice', url_for('career'), 'M12 3l2.4 5.6L20 9.5l-4.3 3.9L17 20l-5-3-5 3 1.3-6.6L4 9.5l5.6-.9z'),
+        ('Update your profile','Add skills, projects and education', url_for('profile'), 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0')] %}
+      <a href="{{ href }}" data-reveal class="card card-hover flex items-center gap-4 p-5">
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-600"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ path }}"/></svg></span>
+        <span class="flex-1"><span class="block font-semibold">{{ title }}</span><span class="block text-sm muted">{{ sub }}</span></span>
+        <svg width="18" height="18" class="text-[#94a3b8]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+      </a>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+
+<style>
+  .next-card { background:linear-gradient(125deg,#1e1b4b 0%,#4338ca 50%,#8b5cf6 115%); box-shadow:0 30px 60px -28px rgba(67,56,202,.7); transition:transform .5s var(--ease), box-shadow .5s var(--ease); }
+  a.next-card:hover { transform:translateY(-3px); box-shadow:0 40px 70px -28px rgba(67,56,202,.8); }
+  .orb { position:absolute; border-radius:50%; background:rgba(255,255,255,.10); animation:floaty 9s ease-in-out infinite; }
+  .orb1 { width:320px; height:320px; right:-80px; top:-120px; } .orb2 { width:200px; height:200px; right:26%; bottom:-110px; animation-delay:-3s; background:rgba(255,255,255,.07); }
+</style>
+<script>
+  (function () { const h = new Date().getHours(); document.getElementById('hello').textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; })();
+</script>
+{% endblock %}

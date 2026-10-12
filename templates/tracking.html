@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Applications{% endblock %}
+{% block content %}
+<style>
+  #filterGrid:not(.show-more) .more-f { display:none; }
+  #filterGrid.show-more .more-f { animation:rise .35s var(--ease) both; }
+  #statCards > div { background:#fff!important; border-radius:18px; box-shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 28px -20px rgba(15,23,42,.18); transition:transform .3s var(--ease); }
+  #statCards > div:hover { transform:translateY(-3px); }
+  #statCards .eyebrow { color:#64748b; }
+  #reminders { display:none!important; }
+  #statCards > div:nth-child(n+5) { display:none; }
+
+  .acc { border:1px solid var(--line); border-radius:16px; padding:.85rem 1rem; background:#fbfbfd; transition:background .2s; }
+  .acc[open] { background:#fff; }
+  .acc > summary { cursor:pointer; font-weight:600; font-size:.9rem; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+  .acc > summary::after { content:"+"; font-size:1.2rem; color:#64748b; transition:transform .3s var(--ease); }
+  .acc[open] > summary::after { transform:rotate(45deg); }
+  .acc[open] > div { animation:rise .35s var(--ease) both; }
+</style>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <section data-reveal class="page-banner flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+    <div>
+      <p class="eyebrow">Application tracker</p>
+      <h1 class="mt-2 font-display">Every application, <span class="hl">one place.</span></h1>
+      <p class="mt-2 muted max-w-xl">Track stages, deadlines, interviews and follow-ups. Drag cards between columns on the board view.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="inline-flex rounded-full border-2 border-ink overflow-hidden text-sm font-bold bg-white text-ink" role="tablist">
+        <button id="tabList" onclick="setView('list')" class="px-4 py-2">List</button>
+        <button id="tabBoard" onclick="setView('board')" class="px-4 py-2 border-l-2 border-ink">Board</button>
+      </div>
+      <button onclick="openModal()" class="btn btn-ink">+ Add application</button>
+    </div>
+  </section>
+
+  <section id="statCards" class="mt-7 grid grid-cols-2 md:grid-cols-4 gap-3"></section>
+  <section id="reminders" class="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-4"></section>
+
+  <section class="card mt-6 p-4">
+    <div class="grid gap-3 md:grid-cols-6" id="filterGrid">
+      <div class="md:col-span-3"><label class="lbl">Search</label><input id="fSearch" class="input" placeholder="Company or role…"></div>
+      <div class="md:col-span-2"><label class="lbl">Status</label><select id="fStatus" class="input"><option value="">All</option>{% for s in statuses %}<option value="{{ s }}">{{ status_labels[s] }}</option>{% endfor %}</select></div>
+      <div class="more-f"><label class="lbl">Group</label><select id="fGroup" class="input"><option value="">All</option><option value="active">Active</option><option value="completed">Completed</option></select></div>
+      <div class="more-f"><label class="lbl">Sort by</label><select id="fSort" class="input"><option value="updated">Recently updated</option><option value="deadline">Deadline</option><option value="applied">Application date</option><option value="company">Company</option></select></div>
+      <div class="flex items-end gap-2"><button type="button" id="moreBtn" class="btn btn-white btn-sm w-full" onclick="document.getElementById('filterGrid').classList.toggle('show-more')">More</button></div>
+            <div class="more-f"><label class="lbl">Deadline from</label><input id="fDlFrom" type="date" class="input"></div>
+      <div class="more-f"><label class="lbl">Deadline to</label><input id="fDlTo" type="date" class="input"></div>
+      <div class="more-f"><label class="lbl">Applied from</label><input id="fApFrom" type="date" class="input"></div>
+      <div class="more-f"><label class="lbl">Applied to</label><input id="fApTo" type="date" class="input"></div>
+    </div>
+  </section>
+
+  <section id="listContainer" class="mt-6 space-y-3 pb-10"></section>
+  <section id="boardContainer" class="hidden mt-6 pb-10 grid gap-4 lg:grid-cols-5 items-start"></section>
+  <div id="emptyState" class="hidden card p-12 text-center">
+    <div class="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-brand-50 text-brand-600 float"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6M9 13l2 2 4-4"/></svg></div>
+    <p class="font-bold text-xl">No applications yet</p>
+    <p class="mt-1 text-sm muted max-w-sm mx-auto">Save an internship you like, or add one you found elsewhere. We will keep track of deadlines and interviews for you.</p>
+    <div class="mt-6 flex flex-wrap justify-center gap-3"><a href="{{ url_for('internships') }}" class="btn btn-ink">Find internships</a><button onclick="openModal()" class="btn btn-white">Add one manually</button></div>
+  </div>
+</div>
+
+<div id="appModal" class="hidden fixed inset-0 z-50 grid place-items-center px-4">
+  <div class="modal-backdrop absolute inset-0 bg-ink/50" onclick="closeModal()"></div>
+  <div class="modal-panel card relative w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+    <div class="sticky top-0 z-10 bg-white border-b border-line px-6 py-4 flex items-center justify-between rounded-t-[20px]">
+      <h2 id="modalTitle" class="font-bold text-xl">Add application</h2>
+      <button onclick="closeModal()" class="btn btn-white btn-sm">Close</button>
+    </div>
+    <form id="appForm" class="p-6 space-y-4" onsubmit="submitForm(event)">
+      <input type="hidden" id="f_id">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="lbl">Company</label><input id="f_company" required class="input" placeholder="e.g. TechNova Labs" autocomplete="off"></div>
+        <div><label class="lbl">Role</label><input id="f_job_title" required class="input" placeholder="e.g. Python Backend Intern" autocomplete="off"></div>
+        <div><label class="lbl">Status</label><select id="f_status" class="input">{% for s in statuses %}<option value="{{ s }}">{{ status_labels[s] }}</option>{% endfor %}</select></div>
+        <div><label class="lbl">Deadline</label><input id="f_deadline" type="date" class="input"></div>
+      </div>
+
+      <details class="acc"><summary>Job details</summary>
+        <div class="grid sm:grid-cols-2 gap-4 pt-3">
+          <div><label class="lbl">Location</label><input id="f_location" class="input"></div>
+          <div><label class="lbl">Posting link</label><input id="f_job_url" type="url" placeholder="https://…" class="input"></div>
+          <div class="sm:col-span-2"><label class="lbl">Job description</label><textarea id="f_job_description" rows="3" class="input"></textarea></div>
+        </div>
+      </details>
+
+      <details class="acc"><summary>Interview &amp; follow-up</summary>
+        <div class="grid sm:grid-cols-2 gap-4 pt-3">
+          <div><label class="lbl">Applied on</label><input id="f_applied_date" type="date" class="input"></div>
+          <div><label class="lbl">Follow up on</label><input id="f_follow_up_date" type="date" class="input"></div>
+          <div class="sm:col-span-2"><label class="lbl">What to do</label><input id="f_follow_up_note" class="input" placeholder="e.g. Email the recruiter for an update"></div>
+          <div><label class="lbl">Interview date and time</label><input id="f_interview_date" type="datetime-local" class="input"></div>
+          <div><label class="lbl">Interview status</label><select id="f_interview_status" class="input"><option value="">Not set</option>{% for s in interview_statuses %}<option value="{{ s }}">{{ s|capitalize }}</option>{% endfor %}</select></div>
+          <div><label class="lbl">Resume used</label><select id="f_resume_id" class="input"><option value="">Not set</option>{% for r in resumes %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
+          <div class="sm:col-span-2"><label class="lbl">Interview notes</label><textarea id="f_interview_notes" rows="2" class="input"></textarea></div>
+        </div>
+      </details>
+
+      <details class="acc"><summary>Notes &amp; documents</summary>
+        <div class="grid gap-4 pt-3">
+          <div><label class="lbl">Notes</label><textarea id="f_notes" rows="2" class="input"></textarea></div>
+          <div><label class="lbl">Tailored resume</label><textarea id="f_tailored_resume" rows="4" class="input text-xs"></textarea></div>
+          <div><label class="lbl">Cover letter</label><textarea id="f_cover_letter" rows="6" class="input"></textarea></div>
+        </div>
+      </details>
+
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" id="deleteBtn" onclick="deleteCurrent()" class="hidden text-sm font-semibold text-[#b42318] hover:underline">Delete application</button>
+        <div class="flex gap-3 ml-auto"><button type="button" onclick="closeModal()" class="btn btn-white btn-sm">Cancel</button><button type="submit" id="saveBtn" class="btn btn-ink btn-sm">Save</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const STATUS_LABELS = {{ status_labels|tojson }};
+const STATUS_ORDER = {{ statuses|tojson }};
+const TONE = { saved:'bg-soft', planning:'bg-soft', applied:'bg-sky', under_review:'bg-sky', shortlisted:'bg-lilac', interview_scheduled:'bg-lilac', interview_completed:'bg-lilac', offer_received:'bg-mint', rejected:'bg-blush', withdrawn:'bg-soft' };
+const COLUMNS = [
+  { title: 'Saved', statuses: ['saved', 'planning'], drop: 'saved' },
+  { title: 'Applied', statuses: ['applied', 'under_review'], drop: 'applied' },
+  { title: 'Interviewing', statuses: ['shortlisted', 'interview_scheduled', 'interview_completed'], drop: 'interview_scheduled' },
+  { title: 'Offer', statuses: ['offer_received'], drop: 'offer_received' },
+  { title: 'Closed', statuses: ['rejected', 'withdrawn'], drop: 'rejected' },
+];
+let apps = [], view = localStorage.getItem('trackerView') || 'list', firstLoad = true;
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+
+function setView(v) {
+  view = v; localStorage.setItem('trackerView', v);
+  $('tabList').className = 'px-4 py-2 ' + (v === 'list' ? 'bg-ink text-white' : 'bg-white');
+  $('tabBoard').className = 'px-4 py-2 border-l-2 border-ink ' + (v === 'board' ? 'bg-ink text-white' : 'bg-white');
+  render();
+}
+function query() {
+  const p = new URLSearchParams();
+  const map = { q: 'fSearch', status: 'fStatus', group: 'fGroup', sort: 'fSort', deadline_from: 'fDlFrom', deadline_to: 'fDlTo', applied_from: 'fApFrom', applied_to: 'fApTo' };
+  for (const [k, id] of Object.entries(map)) if ($(id).value) p.set(k, $(id).value);
+  return p;
+}
+async function load() {
+  if (firstLoad) $('listContainer').innerHTML = [1,2,3].map(() => '<div class="card-flat p-5 bg-white"><div class="skeleton h-5 w-48"></div><div class="skeleton h-4 w-32 mt-3"></div></div>').join('');
+  try {
+    const d = await (await fetch('/api/applications?' + query())).json();
+    apps = d.applications || []; stats(d.stats || {}); render();
+  } catch { showToast('Could not load your applications.', 'error'); }
+  firstLoad = false;
+}
+function stats(s) {
+  const cards = [['Tracked', s.total, 'bg-soft'], ['Active', s.active, 'bg-sky'], ['Interviews', s.interviews_scheduled, 'bg-lilac'], ['Offers', s.offers_received, 'bg-mint'], ['Rejected', s.rejected, 'bg-blush'], ['Completed', s.completed, 'bg-white']];
+  $('statCards').innerHTML = cards.map(([l, v, bg]) => `<div class="card-flat p-4 ${bg}"><p class="eyebrow">${l}</p><p class="mt-1 font-display font-extrabold text-3xl leading-none"><span data-count-to="${v ?? 0}">0</span></p></div>`).join('');
+  $('statCards').querySelectorAll('[data-count-to]').forEach(window.runCount);
+  const box = (title, bg, rows) => rows && rows.length ? `<div class="card-flat p-4 ${bg}"><p class="eyebrow">${title}</p><ul class="mt-2 space-y-2">${rows.join('')}</ul></div>` : '';
+  const li = (a, b, c) => `<li class="flex justify-between gap-3 text-sm font-semibold"><button class="truncate text-left hover:underline" onclick="openById(${a})">${b}</button><span class="shrink-0">${c}</span></li>`;
+  $('reminders').innerHTML = [
+    box('Upcoming deadlines', 'bg-blush', (s.upcoming_deadlines || []).map(i => li(i.id, `${esc(i.job_title)} · ${esc(i.company)}`, i.days_left + 'd'))),
+    box('Interviews scheduled', 'bg-lilac', (s.upcoming_interviews || []).map(i => li(i.id, `${esc(i.job_title)} · ${esc(i.company)}`, esc(i.interview_date.slice(0, 10))))),
+    box('Follow-ups due', 'bg-sky', (s.follow_ups || []).map(i => li(i.id, `${esc(i.follow_up_note || 'Follow up')} · ${esc(i.company)}`, i.days_left < 0 ? 'overdue' : i.days_left + 'd'))),
+    box('Pending applications', 'bg-mint', (s.pending_applications || []).map(i => li(i.id, `${esc(i.job_title)} · ${esc(i.company)}`, i.days_waiting + 'd waiting'))),
+  ].join('');
+}
+function meta(a) {
+  return [a.deadline && `Deadline ${esc(a.deadline)}`, a.applied_date && `Applied ${esc(a.applied_date)}`, a.interview_date && `Interview ${esc(a.interview_date.slice(0,16).replace('T',' '))}${a.interview_status ? ' (' + esc(a.interview_status) + ')' : ''}`, a.follow_up_date && `Follow-up ${esc(a.follow_up_date)}`].filter(Boolean).join(' · ');
+}
+function render() {
+  const empty = !apps.length;
+  $('emptyState').classList.toggle('hidden', !empty);
+  if (empty) { const filtered = [...query().keys()].some(k => k !== 'sort'); $('emptyState').querySelector('p.font-bold').textContent = filtered ? 'Nothing matches those filters' : 'No applications yet'; }
+  $('listContainer').classList.toggle('hidden', view !== 'list' || empty);
+  $('boardContainer').classList.toggle('hidden', view !== 'board' || empty);
+  if (empty) return;
+  if (view === 'list') {
+    $('listContainer').innerHTML = apps.map((a, i) => `
+      <article class="card card-hover animate-pop p-5" style="animation-delay:${Math.min(i,8)*.04}s">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2"><h3 class="font-display font-extrabold text-lg">${esc(a.job_title)}</h3><span class="chip ${TONE[a.status] || 'bg-soft'}">${esc(STATUS_LABELS[a.status] || a.status)}</span>${a.cover_letter ? '<span class="chip">Letter</span>' : ''}${a.tailored_resume ? '<span class="chip">Tailored resume</span>' : ''}</div>
+            <p class="mt-1 text-sm muted font-medium">${esc(a.company)}${a.location ? ' · ' + esc(a.location) : ''}</p>
+            <p class="mt-1 text-xs font-semibold">${meta(a)}</p>
+            ${a.follow_up_note ? `<p class="mt-1 text-xs muted">Next: ${esc(a.follow_up_note)}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-2">
+            <select onchange="quickStatus(${a.id}, this.value)" class="input !py-2 !text-xs !w-auto">${STATUS_ORDER.map(s => `<option value="${s}" ${s === a.status ? 'selected' : ''}>${esc(STATUS_LABELS[s])}</option>`).join('')}</select>
+            <button onclick="openById(${a.id})" class="btn btn-white btn-sm">Open</button>
+          </div>
+        </div>
+      </article>`).join('');
+  } else {
+    $('boardContainer').innerHTML = COLUMNS.map(col => {
+      const items = apps.filter(a => col.statuses.includes(a.status));
+      return `<div class="card-flat bg-soft p-3 min-h-[160px]" ondragover="event.preventDefault();this.style.background='#c8f0d8'" ondragleave="this.style.background=''" ondrop="dropOn(event,'${col.drop}');this.style.background=''">
+        <div class="flex items-center justify-between px-1 pb-2"><p class="eyebrow">${col.title}</p><span class="chip">${items.length}</span></div>
+        <div class="space-y-2">${items.map(a => `<div draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${a.id}')" onclick="openById(${a.id})" class="card-flat bg-white p-3 cursor-grab hover:shadow-[3px_3px_0_#0f0f0f] transition-shadow">
+          <p class="font-bold text-sm leading-tight">${esc(a.job_title)}</p><p class="text-xs muted mt-0.5">${esc(a.company)}</p>
+          ${a.deadline ? `<p class="text-[11px] font-semibold mt-2">Due ${esc(a.deadline)}</p>` : ''}<span class="chip mt-2 ${TONE[a.status]}" style="font-size:.65rem">${esc(STATUS_LABELS[a.status])}</span></div>`).join('')}</div></div>`;
+    }).join('');
+  }
+}
+async function dropOn(ev, status) {
+  ev.preventDefault(); const id = ev.dataTransfer.getData('text/plain'); if (!id) return;
+  const a = apps.find(x => String(x.id) === id); if (a && COLUMNS.find(c => c.drop === status).statuses.includes(a.status)) return;
+  await quickStatus(id, status);
+}
+async function quickStatus(id, status) {
+  try { const r = await fetch('/api/applications/' + id, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); if (!r.ok) throw 0; showToast('Moved to ' + STATUS_LABELS[status], 'success'); }
+  catch { showToast('Could not update status.', 'error'); }
+  load();
+}
+const FIELDS = ['company','job_title','location','job_url','job_description','status','applied_date','deadline','follow_up_date','follow_up_note','interview_status','interview_notes','notes','tailored_resume','cover_letter'];
+function openModal(a) {
+  $('appForm').reset(); $('f_id').value = a ? a.id : '';
+  $('modalTitle').textContent = a ? 'Application details' : 'Add application';
+  $('deleteBtn').classList.toggle('hidden', !a);
+  if (a) {
+    FIELDS.forEach(f => { $('f_' + f).value = a[f] || ''; });
+    $('f_interview_date').value = a.interview_date ? a.interview_date.slice(0, 16) : '';
+    $('f_resume_id').value = a.resume_id || '';
+  } else $('f_status').value = 'saved';
+  document.querySelectorAll('#appForm details.acc').forEach(d => { d.open = !!a && [...d.querySelectorAll('input,textarea,select')].some(i => i.value); });
+  $('appModal').classList.remove('hidden');
+  setTimeout(() => $('f_company').focus(), 60);
+}
+function openById(id) { const a = apps.find(x => x.id === id); if (a) openModal(a); }
+if (new URLSearchParams(location.search).get("new") === "1") { history.replaceState(null, "", location.pathname); setTimeout(() => openModal(), 50); }
+function closeModal() { $('appModal').classList.add('hidden'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('appModal').classList.contains('hidden')) closeModal(); });
+async function submitForm(ev) {
+  ev.preventDefault();
+  const id = $('f_id').value, body = {};
+  FIELDS.forEach(f => body[f] = $('f_' + f).value);
+  ['applied_date','deadline','follow_up_date'].forEach(f => body[f] = body[f] || null);
+  body.interview_date = $('f_interview_date').value || null;
+  body.resume_id = $('f_resume_id').value || null;
+  $('saveBtn').disabled = true;
+  try {
+    const r = await fetch(id ? '/api/applications/' + id : '/api/applications', { method: id ? 'PATCH' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Could not save.');
+    closeModal(); showToast(id ? 'Updated.' : 'Added to tracker.', 'success'); load();
+  } catch (e) { showToast(e.message, 'error'); }
+  $('saveBtn').disabled = false;
+}
+async function deleteCurrent() {
+  const id = $('f_id').value; if (!id) return;
+  if (!await confirmDialog('This application will be removed from your tracker.', { title: 'Delete application?', confirmLabel: 'Delete' })) return;
+  try { const r = await fetch('/api/applications/' + id, { method: 'DELETE' }); if (!r.ok) throw 0; closeModal(); showToast('Deleted.', 'success'); load(); }
+  catch { showToast('Could not delete.', 'error'); }
+}
+function resetFilters() { ['fSearch','fStatus','fGroup','fDlFrom','fDlTo','fApFrom','fApTo'].forEach(i => $(i).value = ''); $('fSort').value = 'updated'; load(); }
+['fStatus','fGroup','fSort','fDlFrom','fDlTo','fApFrom','fApTo'].forEach(i => $(i).addEventListener('change', load));
+let t; $('fSearch').addEventListener('input', () => { clearTimeout(t); t = setTimeout(load, 250); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+setView(view); load();
+</script>
+{% endblock %}

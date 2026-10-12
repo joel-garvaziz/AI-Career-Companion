@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Career Companion — find internships that fit you, close skill gaps, tailor your resume, practise interviews and track every application.">
+  <meta name="theme-color" content="#4338ca">
+  <title>{% block title %}Career Companion{% endblock %} · Career Companion</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234338ca'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'], display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] },
+        colors: {
+          ink: '#0f172a', mute: '#64748b', soft: '#f1f5f9', line: '#e6eaf0',
+          brand: { 50: '#f2f0ff', 100: '#e2deff', 200: '#c7d2fe', 500: '#8b5cf6', 600: '#4338ca', 700: '#3730a3', 800: '#312e81' },
+          mint: '#efecff', sky: '#eaf2fe', lilac: '#f1edfe', blush: '#fdecef', leaf: '#4338ca',
+        },
+      } }
+    }
+  </script>
+
+  <style>
+    :root { --bg:#faf9fc; --panel:#fff; --line:#e8ecf1; --line-strong:#d5dbe3; --ink:#0f172a; --mute:#64748b;
+      --brand:#4338ca; --brand-2:#8b5cf6; --brand-50:#f2f0ff; --brand-100:#e2deff;
+      --mint:#efecff; --sky:#eaf2fe; --lilac:#f1edfe; --blush:#fdecef; --soft:#f1f5f9;
+      --shadow-sm:0 1px 2px rgba(15,23,42,.04); --shadow-md:0 6px 20px -6px rgba(15,23,42,.10);
+      --shadow-lg:0 24px 48px -16px rgba(15,23,42,.22); --ease:cubic-bezier(.22,1,.36,1); }
+    html { scroll-behavior:smooth; overflow-x:clip; }
+    body { font-family:Inter,system-ui,sans-serif; color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased; overflow-x:clip; position:relative; }
+    ::selection { background:var(--brand-100); }
+    .font-display { font-family:Inter,system-ui,sans-serif; letter-spacing:-.025em; font-weight:700; }
+    .tnum { font-variant-numeric:tabular-nums; }
+
+    /* ---------- living background ---------- */
+    .bg-orbs { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+    .bg-orbs i { position:absolute; border-radius:50%; filter:blur(70px); opacity:.55; animation:drift 22s ease-in-out infinite; }
+    .bg-orbs i:nth-child(1) { width:520px; height:520px; left:-140px; top:-160px; background:#ddd6fe; }
+    .bg-orbs i:nth-child(2) { width:460px; height:460px; right:-120px; top:8%; background:#fbcfe8; animation-delay:-7s; opacity:.45; }
+    .bg-orbs i:nth-child(3) { width:380px; height:380px; left:38%; bottom:-200px; background:#c7d2fe; opacity:.4; animation-delay:-14s; }
+    @keyframes drift { 0%,100% { transform:translate3d(0,0,0) scale(1); } 33% { transform:translate3d(60px,40px,0) scale(1.1); } 66% { transform:translate3d(-40px,60px,0) scale(.95); } }
+
+    /* ---------- components ---------- */
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow-sm), 0 12px 32px -18px rgba(15,23,42,.10); }
+    .card-flat { background:var(--panel); border:1px solid var(--line); border-radius:14px; }
+    .card-hover { transition:transform .35s var(--ease), box-shadow .35s var(--ease), border-color .2s; }
+    .card-hover:hover { transform:translateY(-4px); box-shadow:0 20px 40px -18px rgba(67,56,202,.30); border-color:#d6cfff; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; font-weight:600; font-size:.875rem; line-height:1;
+      padding:.72rem 1.15rem; border:1px solid var(--line-strong); border-radius:999px; background:#fff; color:var(--ink); box-shadow:var(--shadow-sm);
+      transition:transform .25s var(--ease), box-shadow .25s var(--ease), background .2s, border-color .2s; cursor:pointer; white-space:nowrap; position:relative; overflow:hidden; }
+    .btn:hover { background:#f8fafc; border-color:#b9c2cf; transform:translateY(-1px); }
+    .btn:active { transform:scale(.97); }
+    .btn:focus-visible, .input:focus-visible, a:focus-visible, button:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
+    .btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .btn-ink { background:linear-gradient(135deg,#4338ca,#8b5cf6); border-color:transparent; color:#fff; box-shadow:0 8px 20px -8px rgba(67,56,202,.6); }
+    .btn-ink:hover { background:linear-gradient(135deg,#3730a3,#7c3aed); border-color:transparent; box-shadow:0 12px 26px -8px rgba(67,56,202,.7); }
+    .btn-mint { background:var(--brand-50); border-color:var(--brand-100); color:#3730a3; }
+    .btn-mint:hover { background:var(--brand-100); }
+    .btn-white { background:#fff; }
+    .btn-danger { background:#fff; border-color:#f6c3c9; color:#b42318; }
+    .btn-danger:hover { background:#fef3f2; border-color:#f0868f; }
+    .btn-sm { padding:.5rem .9rem; font-size:.8rem; }
+    .ripple { position:absolute; border-radius:50%; background:rgba(255,255,255,.45); transform:scale(0); animation:ripple .6s ease-out; pointer-events:none; }
+    @keyframes ripple { to { transform:scale(4); opacity:0; } }
+    .input { width:100%; background:#fff; border:1px solid var(--line-strong); border-radius:14px; padding:.72rem .95rem; font-size:.9rem; color:var(--ink); outline:none; transition:border-color .2s, box-shadow .2s; }
+    .input::placeholder { color:#94a3b8; }
+    .input:focus { border-color:var(--brand-2); box-shadow:0 0 0 4px rgba(139,92,246,.15); }
+    select.input { padding-right:2rem; }
+    .lbl { display:block; font-size:.78rem; font-weight:600; color:#334155; margin-bottom:.4rem; font-family:Inter,sans-serif; }
+    .eyebrow { font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); font-family:Inter,sans-serif; }
+    .chip { display:inline-flex; align-items:center; gap:.3rem; border:1px solid var(--line); border-radius:999px; padding:.22rem .7rem; font-size:.74rem; font-weight:600; background:#fff; color:#334155; transition:transform .2s var(--ease); }
+    .chip:hover { transform:translateY(-1px); }
+    .muted { color:var(--mute); }
+    .skip-link { position:fixed; left:12px; top:-60px; z-index:200; background:#fff; color:var(--brand); padding:.6rem 1rem; border-radius:12px; font-weight:600; box-shadow:var(--shadow-lg); transition:top .2s; }
+    .skip-link:focus { top:12px; }
+    main:focus { outline:none; }
+    .hl { color:var(--brand); }
+    .grid > * { min-width:0; }
+    .grad-text { background:linear-gradient(120deg,#4338ca,#8b5cf6 60%,#f472b6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    body .bg-mint { background:var(--mint)!important; } body .bg-sky { background:var(--sky)!important; } body .bg-lilac { background:var(--lilac)!important; } body .bg-blush { background:var(--blush)!important; } body .bg-soft { background:var(--soft)!important; }
+    body .border-ink { border-color:var(--line-strong)!important; }
+    body .border-2 { border-width:1px!important; } body .border-b-2 { border-bottom-width:1px!important; } body .border-t-2 { border-top-width:1px!important; } body .border-l-4 { border-left-width:3px!important; border-color:var(--brand-100)!important; }
+    body .bg-ink { background:var(--brand)!important; }
+    body .font-extrabold { font-weight:700!important; }
+    .app-page h1.font-display { font-size:clamp(1.7rem,3vw,2.3rem)!important; line-height:1.15!important; font-weight:750!important; }
+    .app-page h1.font-display br { display:none; }
+    .app-page main > div.max-w-7xl, .app-page main > div.max-w-5xl { max-width:70rem; }
+
+    /* simple page header (replaces heavy banners) */
+    .page-banner { background:transparent!important; color:var(--ink)!important; padding:.5rem 0 .25rem!important; box-shadow:none!important; border-radius:0!important; position:static!important; overflow:visible!important; }
+    .page-banner::before, .page-banner::after { display:none!important; }
+    .page-banner h1 { color:var(--ink)!important; } .page-banner p, .page-banner .muted { color:var(--mute)!important; }
+    .page-banner .hl { color:var(--brand)!important; } .page-banner .eyebrow { color:var(--brand)!important; }
+    .page-banner .btn-white { background:#fff!important; color:var(--ink)!important; border-color:var(--line-strong)!important; }
+    .page-banner .btn-ink { background:linear-gradient(135deg,#4338ca,#8b5cf6)!important; color:#fff!important; }
+
+    /* ---------- motion ---------- */
+    @keyframes rise { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    @keyframes popIn { from { opacity:0; transform:scale(.96) translateY(8px); } to { opacity:1; transform:none; } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes shimmer { 0% { background-position:-400px 0; } 100% { background-position:400px 0; } }
+    @keyframes dotBounce { 0%,80%,100% { transform:translateY(0); opacity:.5; } 40% { transform:translateY(-4px); opacity:1; } }
+    @keyframes floaty { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+    @keyframes pulseRing { 0% { box-shadow:0 0 0 0 rgba(139,92,246,.45); } 100% { box-shadow:0 0 0 14px rgba(139,92,246,0); } }
+    .animate-pop { animation:popIn .4s var(--ease) both; }
+    .float { animation:floaty 6s ease-in-out infinite; }
+    [data-reveal] { opacity:0; transform:translateY(22px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
+    [data-reveal].in-view { opacity:1; transform:none; }
+    main { animation:rise .5s var(--ease) both; transition:opacity .16s ease, transform .16s ease; }
+    body.leaving main { opacity:0; transform:translateY(-6px); }
+    .skeleton { background:linear-gradient(90deg,#edf1f5 25%,#f7f9fb 37%,#edf1f5 63%); background-size:800px 100%; animation:shimmer 1.4s linear infinite; border-radius:10px; }
+    .dot-bounce span { display:inline-block; width:5px; height:5px; border-radius:99px; background:currentColor; margin:0 1.5px; animation:dotBounce 1.2s ease-in-out infinite; }
+    .dot-bounce span:nth-child(2){animation-delay:.15s} .dot-bounce span:nth-child(3){animation-delay:.3s}
+    @media (prefers-reduced-motion:reduce) { *, ::before, ::after { animation-duration:.001ms!important; transition-duration:.001ms!important; } [data-reveal]{opacity:1;transform:none;} }
+
+    /* ---------- top navigation ---------- */
+    .topnav { position:sticky; top:0; z-index:40; background:rgba(255,255,255,.72); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid rgba(15,23,42,.06); }
+    .topnav-in { max-width:70rem; margin:0 auto; height:64px; padding:0 1.25rem; display:flex; align-items:center; gap:1rem; }
+    .logo { display:flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:-.02em; }
+    .logo-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:linear-gradient(135deg,#4338ca,#8b5cf6); color:#fff; box-shadow:0 6px 14px -4px rgba(67,56,202,.55); transition:transform .4s var(--ease); }
+    .logo:hover .logo-mark { transform:rotate(-8deg) scale(1.06); }
+    .navwrap { position:relative; display:none; margin:0 auto; padding:4px; background:rgba(15,23,42,.05); border-radius:999px; }
+    @media (min-width:900px) { .navwrap { display:flex; } }
+    .navlink { position:relative; z-index:1; padding:.5rem 1rem; border-radius:999px; font-size:.86rem; font-weight:600; color:#475569; transition:color .2s; }
+    .navlink:hover { color:var(--ink); }
+    .navlink.active { color:var(--brand); }
+    .nav-pill { position:absolute; z-index:0; top:4px; bottom:4px; left:0; width:0; border-radius:999px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.10); transition:transform .4s var(--ease), width .4s var(--ease), opacity .2s; opacity:0; }
+    .iconbtn { position:relative; display:grid; place-items:center; width:40px; height:40px; border-radius:999px; border:1px solid var(--line); background:#fff; color:#475569; transition:transform .25s var(--ease), background .2s; }
+    .iconbtn:hover { background:#f8fafc; transform:translateY(-1px); }
+    .badge-dot { position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; padding:0 5px; border-radius:99px; background:#ef4444; color:#fff; font-size:.64rem; font-weight:700; display:grid; place-items:center; border:2px solid #fff; animation:pulseRing 2s infinite; }
+    .avatar { display:grid; place-items:center; width:40px; height:40px; border-radius:999px; background:linear-gradient(135deg,#c7d2fe,#bcd4ff); color:#312e81; font-weight:700; font-size:.9rem; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 8px rgba(15,23,42,.12); transition:transform .25s var(--ease); }
+    .avatar:hover { transform:scale(1.06); }
+    .menu { position:absolute; right:0; top:calc(100% + 10px); background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow-lg); min-width:220px; z-index:60; animation:popIn .22s var(--ease) both; overflow:hidden; transform-origin:top right; }
+    .menu a, .menu button.mi { display:flex; width:100%; align-items:center; gap:.65rem; padding:.7rem 1rem; font-size:.86rem; font-weight:500; text-align:left; color:#334155; transition:background .15s, padding-left .2s var(--ease); }
+    .menu a:hover, .menu button.mi:hover { background:var(--brand-50); padding-left:1.25rem; }
+    .kbd { font-family:"JetBrains Mono",monospace; font-size:.68rem; padding:.1rem .4rem; border:1px solid var(--line-strong); border-bottom-width:2px; border-radius:6px; background:#fff; color:#64748b; }
+
+    /* mobile bottom tab bar */
+    .tabbar { position:fixed; left:12px; right:12px; bottom:12px; z-index:45; display:flex; justify-content:space-around; padding:.4rem; background:rgba(255,255,255,.9); backdrop-filter:blur(16px); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow-lg); }
+    @media (min-width:900px) { .tabbar { display:none; } }
+    .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:.45rem 0; border-radius:16px; font-size:.64rem; font-weight:600; color:#64748b; transition:background .25s, color .25s, transform .25s var(--ease); }
+    .tab svg { width:21px; height:21px; transition:transform .3s var(--ease); }
+    .tab.active { color:var(--brand); background:var(--brand-50); } .tab.active svg { transform:translateY(-2px) scale(1.1); }
+    @media (max-width:899px) { main { padding-bottom:96px; } footer.appfoot { display:none; } }
+
+    /* public nav */
+    .pubnav { position:sticky; top:0; z-index:40; background:rgba(255,255,255,.7); backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid rgba(15,23,42,.06); }
+
+    /* toasts + modal + palette */
+    #toastStack { position:fixed; z-index:120; bottom:5.5rem; right:1.25rem; display:flex; flex-direction:column; gap:.6rem; pointer-events:none; max-width:min(22rem,calc(100vw - 2rem)); }
+    @media (min-width:900px) { #toastStack { bottom:1.5rem; } }
+    .toast { pointer-events:auto; display:flex; gap:.6rem; padding:.85rem 1.1rem; background:#0f172a; color:#fff; border-radius:16px; box-shadow:var(--shadow-lg); animation:popIn .35s var(--ease) both; font-size:.86rem; font-weight:500; }
+    .toast.success { background:#065f46; } .toast.error { background:#991b1b; }
+    .toast.leaving { animation:fadeIn .2s ease reverse both; }
+    .modal-backdrop { animation:fadeIn .25s ease both; backdrop-filter:blur(3px); }
+    .modal-panel { animation:popIn .35s var(--ease) both; }
+    .pal-item { transition:background .12s; }
+    .pal-item[aria-selected=true] { background:var(--brand-50); }
+  </style>
+</head>
+
+{% set nav_items = [
+  ('dashboard','Home','M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10'),
+  ('internships','Internships','M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z'),
+  ('career','Career coach','M12 3l2.4 5.6L20 9.5l-4.3 3.9L17 20l-5-3-5 3 1.3-6.6L4 9.5l5.6-.9z'),
+  ('applications_page','Applications','M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6M9 13l2 2 4-4'),
+  ('profile','Profile','M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0'),
+] %}
+{% set ep = request.endpoint %}
+{% set active_ep = 'profile' if ep in ('profile',) else ('dashboard' if ep == 'dashboard' else ep) %}
+
+<body class="min-h-screen {{ 'app-page' if current_student else 'public-page' }}">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <div class="bg-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+
+{% if current_student %}
+  <header class="topnav">
+    <div class="topnav-in">
+      <a href="{{ url_for('dashboard') }}" class="logo">
+        <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+        <span class="hidden sm:inline">Career Companion</span>
+      </a>
+      <nav class="navwrap" id="navwrap" aria-label="Main">
+        <span class="nav-pill" id="navPill"></span>
+        {% for e, label, icon in nav_items %}<a href="{{ url_for(e) }}" class="navlink {{ 'active' if ep == e else '' }}"{% if ep == e %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+      </nav>
+      <div class="flex-1 md:hidden"></div>
+      <div class="flex items-center gap-2.5 ml-auto md:ml-0">
+        <button onclick="openPalette()" class="iconbtn" aria-label="Search"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+        <div class="relative">
+          <button id="bellBtn" class="iconbtn" onclick="toggleMenu(event,'bellMenu')" aria-label="Reminders"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellCount" class="badge-dot hidden">0</span></button>
+          <div id="bellMenu" class="menu hidden" style="min-width:min(340px,86vw)"><div class="px-4 py-3 border-b border-line flex items-center justify-between"><p class="font-semibold text-sm">Reminders</p><a href="{{ url_for('applications_page') }}" style="padding:0;display:inline" class="text-xs font-semibold text-brand-600">Open</a></div><div id="bellList" class="max-h-80 overflow-y-auto py-1"></div></div>
+        </div>
+        <div class="relative">
+          <button class="avatar" onclick="toggleMenu(event,'userMenu')" aria-label="Account">{{ current_student.full_name[:1]|upper }}</button>
+          <div id="userMenu" class="menu hidden">
+            <div class="px-4 py-3 border-b border-line"><p class="font-semibold text-sm truncate">{{ current_student.full_name }}</p><p class="text-xs muted truncate">{{ current_student.email }}</p></div>
+            <a href="{{ url_for('upload_resume') }}">My resumes</a>
+            <a href="{{ url_for('settings') }}">Settings</a>
+            <a href="{{ url_for('logout') }}" style="color:#b42318">Log out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+{% else %}
+  <header class="pubnav">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="{{ url_for('index') }}" class="logo">
+        <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+        <span>Career Companion</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-[#475569]">
+        <a href="{{ url_for('index') }}#features" class="hover:text-ink transition-colors">Features</a><a href="{{ url_for('index') }}#how" class="hover:text-ink transition-colors">How it works</a><a href="{{ url_for('index') }}#faq" class="hover:text-ink transition-colors">FAQ</a>
+      </nav>
+      <div class="flex items-center gap-2"><a href="{{ url_for('login') }}" class="btn btn-white btn-sm">Log in</a><a href="{{ url_for('register') }}" class="btn btn-ink btn-sm">Get started</a></div>
+    </div>
+  </header>
+{% endif %}
+
+  <main id="main" tabindex="-1">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-5">{% include "_flash.html" %}</div>
+    {% block content %}{% endblock %}
+  </main>
+
+{% if not current_student %}
+  <footer class="border-t border-line bg-white/60">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm muted">
+      <span>© Career Companion</span>
+      <span class="flex gap-6"><a href="{{ url_for('index') }}#features" class="hover:text-ink">Features</a><a href="{{ url_for('index') }}#faq" class="hover:text-ink">FAQ</a><a href="{{ url_for('login') }}" class="hover:text-ink">Log in</a></span>
+    </div>
+  </footer>
+{% endif %}
+{% if current_student %}
+  <footer class="appfoot px-6 py-8 text-center text-xs muted">Career Companion · Find it. Prepare for it. Land it.</footer>
+  <nav class="tabbar" aria-label="Mobile">
+    {% for e, label, icon in nav_items %}
+    <a href="{{ url_for(e) }}" class="tab {{ 'active' if ep == e else '' }}"{% if ep == e %} aria-current="page"{% endif %}><svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ icon }}"/></svg>{{ label.split(' ')[0] }}</a>
+    {% endfor %}
+  </nav>
+{% endif %}
+
+  <div id="toastStack" aria-live="polite"></div>
+
+  <div id="confirmModal" class="hidden fixed inset-0 z-[130] grid place-items-center px-4">
+    <div class="modal-backdrop absolute inset-0 bg-ink/40"></div>
+    <div class="modal-panel card relative w-full max-w-sm p-6" style="box-shadow:var(--shadow-lg)">
+      <h3 id="confirmModalTitle" class="font-semibold text-lg">Are you sure?</h3>
+      <p id="confirmModalBody" class="mt-2 text-sm muted"></p>
+      <div class="flex justify-end gap-2 mt-6"><button type="button" id="confirmModalCancel" class="btn btn-white btn-sm">Cancel</button><button type="button" id="confirmModalOk" class="btn btn-danger btn-sm">Confirm</button></div>
+    </div>
+  </div>
+
+  {% if current_student %}
+  <div id="palette" class="hidden fixed inset-0 z-[125] grid place-items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="modal-backdrop absolute inset-0 bg-ink/40" onclick="closePalette()"></div>
+    <div class="modal-panel card relative w-full max-w-xl overflow-hidden" style="box-shadow:var(--shadow-lg)">
+      <div class="flex items-center gap-3 px-5 border-b border-line"><svg width="17" height="17" fill="none" stroke="#94a3b8" stroke-width="1.9" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="palInput" class="flex-1 h-14 text-[15px] outline-none bg-transparent" placeholder="Search pages or internships…" autocomplete="off"><span class="kbd">Esc</span></div>
+      <div id="palList" class="max-h-[50vh] overflow-y-auto py-2" role="listbox"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    function showToast(message, type = 'info') {
+      const stack = document.getElementById('toastStack'); if (!stack) return;
+      const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = message; stack.appendChild(t);
+      setTimeout(() => { t.classList.add('leaving'); setTimeout(() => t.remove(), 220); }, 3800);
+    }
+    window.showToast = showToast;
+    function confirmDialog(message, opts = {}) {
+      return new Promise(resolve => {
+        const modal = document.getElementById('confirmModal');
+        document.getElementById('confirmModalTitle').textContent = opts.title || 'Are you sure?';
+        document.getElementById('confirmModalBody').textContent = message || '';
+        const ok = document.getElementById('confirmModalOk'), cancel = document.getElementById('confirmModalCancel');
+        ok.textContent = opts.confirmLabel || 'Confirm'; modal.classList.remove('hidden');
+        const done = r => { modal.classList.add('hidden'); ok.removeEventListener('click', onOk); cancel.removeEventListener('click', onCancel); resolve(r); };
+        const onOk = () => done(true), onCancel = () => done(false);
+        ok.addEventListener('click', onOk); cancel.addEventListener('click', onCancel);
+      });
+    }
+    window.confirmDialog = confirmDialog;
+
+    /* ---------- scroll reveal (staggered) ---------- */
+    (function () {
+      const items = document.querySelectorAll('[data-reveal]');
+      items.forEach((e, i) => { if (!e.style.transitionDelay) e.style.transitionDelay = Math.min(i % 6, 5) * 70 + 'ms'; });
+      if (!('IntersectionObserver' in window)) { items.forEach(e => e.classList.add('in-view')); return; }
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } }), { threshold: .06, rootMargin: '0px 0px -20px 0px' });
+      items.forEach(e => io.observe(e));
+      setTimeout(() => items.forEach(e => e.getBoundingClientRect().top < innerHeight && e.classList.add('in-view')), 700);
+    })();
+    /* ---------- count-up ---------- */
+    function runCount(el) {
+      const target = parseFloat(el.dataset.countTo), suffix = el.dataset.countSuffix || '', start = performance.now();
+      (function step(now) { const p = Math.min((now - start) / 1000, 1); el.textContent = Math.round(target * (1 - Math.pow(1 - p, 4))) + suffix; if (p < 1) requestAnimationFrame(step); })(start);
+    }
+    window.runCount = runCount;
+    (function () {
+      const items = document.querySelectorAll('[data-count-to]');
+      const fin = e => e.textContent = Math.round(parseFloat(e.dataset.countTo)) + (e.dataset.countSuffix || '');
+      if (!('IntersectionObserver' in window)) { items.forEach(fin); return; }
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { runCount(e.target); io.unobserve(e.target); } }), { threshold: .3 });
+      items.forEach(e => io.observe(e));
+      setTimeout(() => items.forEach(fin), 2800);
+    })();
+    /* ---------- button ripple ---------- */
+    document.addEventListener('pointerdown', e => {
+      const b = e.target.closest('.btn-ink'); if (!b) return;
+      const r = b.getBoundingClientRect(), s = document.createElement('span'), d = Math.max(r.width, r.height);
+      s.className = 'ripple'; s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+      b.appendChild(s); setTimeout(() => s.remove(), 620);
+    });
+    /* ---------- smooth page transitions ---------- */
+    document.addEventListener('click', e => {
+      const a = e.target.closest('a[href]'); if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      const u = new URL(a.href, location.href);
+      if (u.origin !== location.origin || a.target === '_blank' || a.hasAttribute('download') || (u.pathname === location.pathname && u.hash) || u.pathname.startsWith('/api/') || u.pathname.includes('/view') || u.pathname.includes('/settings/export')) return;
+      e.preventDefault(); document.body.classList.add('leaving'); setTimeout(() => { location.href = a.href; }, 150);
+    });
+    window.addEventListener('pageshow', () => document.body.classList.remove('leaving'));
+
+    {% if current_student %}
+    /* ---------- nav sliding pill ---------- */
+    (function () {
+      const wrap = document.getElementById('navwrap'), pill = document.getElementById('navPill'); if (!wrap) return;
+      const links = [...wrap.querySelectorAll('.navlink')], active = wrap.querySelector('.navlink.active');
+      const to = l => { if (!l) { pill.style.opacity = 0; return; } pill.style.opacity = 1; pill.style.width = l.offsetWidth + 'px'; pill.style.transform = `translateX(${l.offsetLeft}px)`; };
+      const home = () => to(active);
+      links.forEach(l => l.addEventListener('mouseenter', () => to(l))); wrap.addEventListener('mouseleave', home);
+      home(); window.addEventListener('resize', home); document.fonts && document.fonts.ready.then(home);
+    })();
+
+    /* ---------- menus + reminders ---------- */
+    const _esc = v => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    function toggleMenu(e, id) { e.stopPropagation(); ['bellMenu', 'userMenu'].forEach(m => { const el = document.getElementById(m); if (m === id) el.classList.toggle('hidden'); else el.classList.add('hidden'); }); }
+    document.addEventListener('click', e => ['bellMenu', 'userMenu'].forEach(id => { const m = document.getElementById(id); if (m && !m.contains(e.target)) m.classList.add('hidden'); }));
+    (async function loadBell() {
+      try {
+        const s = await (await fetch('/api/applications/stats')).json();
+        const rows = [];
+        (s.upcoming_deadlines || []).forEach(i => rows.push(['Deadline', `${i.job_title} · ${i.company}`, i.days_left + 'd left', '#ef4444']));
+        (s.upcoming_interviews || []).forEach(i => rows.push(['Interview', `${i.job_title} · ${i.company}`, i.interview_date.slice(0, 10), '#8b5cf6']));
+        (s.follow_ups || []).forEach(i => rows.push(['Follow up', `${i.follow_up_note || 'Follow up'} · ${i.company}`, i.days_left < 0 ? 'overdue' : i.days_left + 'd', '#3b82f6']));
+        (s.pending_applications || []).forEach(i => rows.push(['Waiting', `${i.job_title} · ${i.company}`, i.days_waiting + 'd', '#64748b']));
+        const c = document.getElementById('bellCount'); if (rows.length) { c.textContent = rows.length; c.classList.remove('hidden'); }
+        document.getElementById('bellList').innerHTML = rows.length ? rows.map(r => `<a href="{{ url_for('applications_page') }}" class="flex items-start gap-3 px-4 py-2.5"><span class="mt-1.5 h-2 w-2 rounded-full shrink-0" style="background:${r[3]}"></span><span class="flex-1 min-w-0"><span class="block text-[11px] font-semibold uppercase tracking-wide" style="color:${r[3]}">${r[0]}</span><span class="block text-sm truncate">${_esc(r[1])}</span></span><span class="text-xs muted shrink-0 mt-1">${_esc(r[2])}</span></a>`).join('') : '<p class="px-4 py-8 text-center text-sm muted">You\'re all caught up.</p>';
+      } catch {}
+    })();
+
+    /* ---------- search ---------- */
+    const PAGES = [
+      ['Home', '{{ url_for("dashboard") }}', 'Page'], ['Internships', '{{ url_for("internships") }}', 'Page'], ['Career coach', '{{ url_for("career") }}', 'Page'],
+      ['My applications', '{{ url_for("applications_page") }}', 'Page'], ['My profile', '{{ url_for("profile") }}', 'Page'], ['My resumes', '{{ url_for("upload_resume") }}', 'Page'], ['Settings', '{{ url_for("settings") }}', 'Page'],
+      ['Upload a resume', '{{ url_for("upload_resume") }}', 'Action'], ['Add an application', '{{ url_for("applications_page") }}?new=1', 'Action'], ['Log out', '{{ url_for("logout") }}', 'Action'],
+    ];
+    let palJobs = null, palIdx = 0, palRows = [];
+    async function openPalette() {
+      document.getElementById('palette').classList.remove('hidden'); const i = document.getElementById('palInput'); i.value = ''; i.focus(); renderPalette('');
+      if (!palJobs) { try { palJobs = (await (await fetch('/api/jobs')).json()).jobs || []; renderPalette(i.value); } catch { palJobs = []; } }
+    }
+    function closePalette() { document.getElementById('palette').classList.add('hidden'); }
+    function renderPalette(q) {
+      q = q.trim().toLowerCase(); const rows = [];
+      PAGES.filter(p => !q || p[0].toLowerCase().includes(q)).forEach(p => rows.push({ t: p[0], s: p[2], href: p[1] }));
+      if (q && palJobs) palJobs.filter(j => (j.job_title + ' ' + j.company + ' ' + j.domain + ' ' + (j.required_skills || []).join(' ')).toLowerCase().includes(q)).slice(0, 8).forEach(j => rows.push({ t: j.job_title + ' — ' + j.company, s: j.location, href: '{{ url_for("career") }}?job_id=' + encodeURIComponent(j.job_id) }));
+      palRows = rows; palIdx = 0;
+      document.getElementById('palList').innerHTML = rows.length ? rows.map((r, i) => `<a role="option" href="${r.href}" data-i="${i}" class="pal-item flex items-center justify-between gap-3 px-5 py-3 text-sm" aria-selected="${i === 0}"><span class="truncate font-medium">${_esc(r.t)}</span><span class="text-xs muted shrink-0">${_esc(r.s)}</span></a>`).join('') : '<p class="px-4 py-8 text-center text-sm muted">Nothing found.</p>';
+    }
+    function movePal(d) { if (!palRows.length) return; palIdx = (palIdx + d + palRows.length) % palRows.length; document.querySelectorAll('.pal-item').forEach((e, i) => { e.setAttribute('aria-selected', i === palIdx); if (i === palIdx) e.scrollIntoView({ block: 'nearest' }); }); }
+    document.getElementById('palInput').addEventListener('input', e => renderPalette(e.target.value));
+    document.addEventListener('keydown', e => {
+      const open = !document.getElementById('palette').classList.contains('hidden');
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); open ? closePalette() : openPalette(); }
+      else if (open && e.key === 'Escape') closePalette();
+      else if (open && e.key === 'ArrowDown') { e.preventDefault(); movePal(1); }
+      else if (open && e.key === 'ArrowUp') { e.preventDefault(); movePal(-1); }
+      else if (open && e.key === 'Enter' && palRows[palIdx]) { location.href = palRows[palIdx].href; }
+    });
+    {% endif %}
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

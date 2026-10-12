@@ -1,0 +1,2106 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================================================
+       PROFILE PAGE
+       ========================================================= */
+
+    .profile-page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 42px 20px 70px;
+    }
+
+    /* ---------- Common card ---------- */
+
+    .profile-card {
+        background: #f5f5f5;
+        border: 1px solid rgba(115, 115, 115, 0.13);
+        border-radius: 12px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+        transition: border-color .25s ease, box-shadow .25s ease;
+        opacity: 0;
+        transform: translateY(16px);
+        animation: fadeInUp .6s cubic-bezier(.16,1,.3,1) forwards;
+    }
+
+    .profile-card:hover {
+        border-color: rgba(115, 115, 115, 0.22);
+    }
+
+    .profile-card:nth-of-type(2) { animation-delay: .06s; }
+    .profile-card:nth-of-type(3) { animation-delay: .12s; }
+    .profile-card:nth-of-type(4) { animation-delay: .18s; }
+    .profile-card:nth-of-type(5) { animation-delay: .24s; }
+
+    .profile-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .section-eyebrow {
+        color: #737373;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .section-title {
+        color: #0a0a0a;
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    .section-description {
+        color: #737373;
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 5px;
+    }
+
+    /* ---------- Hero ---------- */
+
+    .profile-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 32px;
+        border-radius: 12px;
+        background:
+            radial-gradient(
+                circle at 90% 10%,
+                rgba(21, 128, 61, 0.12),
+                transparent 30%
+            ),
+            radial-gradient(
+                circle at 10% 100%,
+                rgba(67,56,202, 0.08),
+                transparent 30%
+            ),
+            #f5f5f5;
+        border: 1px solid rgba(115, 115, 115, 0.14);
+        box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
+    }
+
+    .profile-hero::after {
+        content: "";
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        right: -65px;
+        top: -75px;
+        border-radius: 50%;
+        border: 1px solid rgba(10, 10, 10, 0.05);
+        box-shadow:
+            0 0 0 25px rgba(10, 10, 10, 0.015),
+            0 0 0 50px rgba(10, 10, 10, 0.01);
+        pointer-events: none;
+    }
+
+    .profile-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .profile-avatar {
+        width: 82px;
+        height: 82px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: linear-gradient(
+            135deg,
+            rgba(21, 128, 61, 0.30),
+            rgba(67,56,202, 0.15)
+        );
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        color: #052e16;
+        font-size: 29px;
+        font-weight: 800;
+    }
+
+    .profile-hero-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .profile-hero-label {
+        color: #166534;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .profile-name {
+        color: #0a0a0a;
+        font-family: 'Lexend', 'Inter', ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .profile-contact {
+        color: #525252;
+        font-size: 13px;
+        margin-top: 8px;
+    }
+
+    .profile-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 11px;
+        background: #15803d;
+        color: #0a0a0a;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .profile-action:hover {
+        background: #16a34a;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    /* ---------- Completion ---------- */
+
+    .completion-card {
+        margin-top: 20px;
+        padding: 23px;
+    }
+
+    .completion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .completion-score {
+        color: #14532d;
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .completion-track {
+        width: 100%;
+        height: 7px;
+        overflow: hidden;
+        margin-top: 15px;
+        border-radius: 999px;
+        background: #e5e5e5;
+    }
+
+    .completion-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #166534, #15803d);
+        transition: width 1s cubic-bezier(.16,1,.3,1);
+    }
+
+    .completion-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 9px;
+        margin-top: 17px;
+    }
+
+    .completion-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 11px;
+        border-radius: 10px;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        color: #525252;
+        font-size: 11px;
+    }
+
+    .completion-check {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: #e5e5e5;
+        color: #737373;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .completion-check.complete {
+        background: rgba(34, 197, 94, 0.10);
+        color: #86efac;
+    }
+
+    /* ---------- Forms ---------- */
+
+    .form-card {
+        margin-top: 20px;
+        padding: 27px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .form-field {
+        display: block;
+    }
+
+    .form-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        color: #404040;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .profile-input,
+    .profile-select,
+    .profile-textarea {
+        width: 100%;
+        border: 1px solid #d4d4d4;
+        border-radius: 11px;
+        background: #ffffff;
+        color: #262626;
+        font-size: 13px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .profile-input,
+    .profile-select {
+        height: 44px;
+        padding: 0 13px;
+    }
+
+    .profile-textarea {
+        min-height: 110px;
+        padding: 12px 13px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    .profile-input::placeholder,
+    .profile-textarea::placeholder {
+        color: #a3a3a3;
+    }
+
+    .profile-input:focus,
+    .profile-select:focus,
+    .profile-textarea:focus {
+        border-color: #15803d;
+        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.10);
+    }
+
+    .primary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 11px;
+        background: #15803d;
+        color: #0a0a0a;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .primary-button:hover {
+        background: #16a34a;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px -8px rgba(21, 128, 61, 0.5);
+    }
+
+    .primary-button:active {
+        transform: translateY(0) scale(.97);
+    }
+
+    .secondary-button {
+        height: 43px;
+        padding: 0 17px;
+        border: 1px solid #d4d4d4;
+        border-radius: 10px;
+        background: transparent;
+        color: #404040;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .secondary-button:hover {
+        background: #e5e5e5;
+        color: #0a0a0a;
+    }
+
+    /* ---------- Skills ---------- */
+
+    .skills-card {
+        margin-top: 20px;
+        padding: 27px;
+    }
+
+    .total-label {
+        color: #737373;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .skill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+    }
+
+    .skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 9px 7px 11px;
+        border-radius: 999px;
+        background: rgba(21, 128, 61, 0.08);
+        border: 1px solid rgba(21, 128, 61, 0.15);
+        color: #052e16;
+        font-size: 11px;
+        font-weight: 600;
+        transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+        animation: popIn .35s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    .skill-chip:hover {
+        background: rgba(21, 128, 61, 0.14);
+        border-color: rgba(21, 128, 61, 0.28);
+        transform: translateY(-1px);
+    }
+
+    .skill-category {
+        color: #737373;
+        font-size: 9px;
+        font-weight: 500;
+    }
+
+    .delete-inline {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #737373;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        transition: color .2s ease, transform .2s ease;
+    }
+
+    .delete-inline:hover {
+        transform: scale(1.15);
+    }
+
+    .delete-inline:hover {
+        color: #fca5a5;
+    }
+
+    .add-form {
+        display: grid;
+        grid-template-columns: 1fr 180px auto;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(115, 115, 115, 0.10);
+    }
+
+    /* ---------- Education ---------- */
+
+    .education-card {
+        margin-top: 20px;
+        padding: 27px;
+    }
+
+    .education-grid,
+    .project-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 13px;
+        margin-top: 18px;
+    }
+
+    .education-item,
+    .project-item {
+        position: relative;
+        padding: 18px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        transition: all 0.2s ease;
+    }
+
+    .education-item:hover,
+    .project-item:hover {
+        border-color: #d4d4d4;
+        transform: translateY(-1px);
+    }
+
+    .item-title {
+        color: #171717;
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .item-subtitle {
+        color: #404040;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .item-meta {
+        color: #737373;
+        font-size: 11px;
+        line-height: 1.5;
+        margin-top: 7px;
+    }
+
+    .item-grade {
+        color: #166534;
+        font-size: 11px;
+        margin-top: 7px;
+    }
+
+    .delete-button {
+        padding: 0;
+        margin-top: 13px;
+        border: 0;
+        background: transparent;
+        color: #f87171;
+        font-size: 11px;
+        cursor: pointer;
+    }
+
+    .delete-button:hover {
+        color: #fca5a5;
+    }
+
+    /* ---------- Experience ---------- */
+
+    .experience-card {
+        margin-top: 20px;
+        padding: 27px;
+    }
+
+    .experience-list {
+        position: relative;
+        margin-top: 24px;
+    }
+
+    .experience-list::before {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 4px;
+        bottom: 4px;
+        width: 1px;
+        background: #d4d4d4;
+    }
+
+    .experience-item {
+        position: relative;
+        padding-left: 27px;
+        margin-bottom: 28px;
+    }
+
+    .experience-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .experience-dot {
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #15803d;
+        border: 3px solid #f5f5f5;
+        box-sizing: content-box;
+    }
+
+    .experience-company {
+        color: #404040;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .experience-date {
+        color: #737373;
+        font-size: 10px;
+        margin-top: 5px;
+    }
+
+    .experience-description {
+        color: #525252;
+        font-size: 12px;
+        line-height: 1.65;
+        margin-top: 10px;
+    }
+
+    .technology-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .technology-chip {
+        padding: 5px 8px;
+        border-radius: 6px;
+        background: #e5e5e5;
+        color: #525252;
+        font-size: 9px;
+    }
+
+    .experience-form {
+        margin-top: 25px;
+        padding-top: 23px;
+        border-top: 1px solid rgba(115, 115, 115, 0.10);
+    }
+
+    /* ---------- Projects ---------- */
+
+    .projects-card {
+        margin-top: 20px;
+        padding: 27px;
+        margin-bottom: 20px;
+    }
+
+    .project-role {
+        color: #166534;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+
+    .project-description {
+        color: #525252;
+        font-size: 12px;
+        line-height: 1.65;
+        margin-top: 10px;
+    }
+
+    .project-tech {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 11px;
+    }
+
+    .project-tech-chip {
+        padding: 5px 8px;
+        border-radius: 6px;
+        background: rgba(21, 128, 61, 0.08);
+        color: #14532d;
+        font-size: 9px;
+    }
+
+    .project-links {
+        display: flex;
+        gap: 15px;
+        margin-top: 13px;
+    }
+
+    .project-links a {
+        color: #14532d;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .project-links a:hover {
+        color: #052e16;
+    }
+
+    /* ---------- Empty states ---------- */
+
+    .empty-message {
+        padding: 20px 0;
+        color: #737373;
+        font-size: 12px;
+    }
+
+    /* ---------- Responsive ---------- */
+
+    @media (max-width: 900px) {
+
+        .completion-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .add-form {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .add-form button {
+            grid-column: 1 / -1;
+        }
+
+    }
+
+    @media (max-width: 700px) {
+
+        .profile-page {
+            padding: 25px 14px 50px;
+        }
+
+        .profile-hero {
+            padding: 24px;
+        }
+
+        .profile-hero-content {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .profile-action {
+            width: 100%;
+        }
+
+        .form-grid,
+        .education-grid,
+        .project-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-field.full {
+            grid-column: auto;
+        }
+
+        .add-form {
+            grid-template-columns: 1fr;
+        }
+
+        .add-form button {
+            grid-column: auto;
+        }
+
+        .completion-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .profile-card-header {
+            align-items: flex-start;
+        }
+
+    }
+
+    @media (max-width: 480px) {
+
+        .completion-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-card-header {
+            flex-direction: column;
+        }
+
+        .total-label {
+            align-self: flex-start;
+        }
+
+        .profile-name {
+            font-size: 1.8rem;
+        }
+
+        .form-card,
+        .skills-card,
+        .education-card,
+        .experience-card,
+        .projects-card {
+            padding: 20px;
+        }
+
+    }
+</style>
+<style>
+/* ===== calm product layer ===== */
+@keyframes fadeInUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+.bgshape { display:none !important; }
+.internship-page, .profile-page { max-width:70rem !important; margin:0 auto !important; padding:40px 20px 80px !important; font-family:Inter,system-ui,sans-serif !important; }
+/* headers: plain, no banner */
+body .internship-hero, body .profile-hero { background:transparent !important; border:0 !important; box-shadow:none !important; padding:0 0 8px !important; overflow:visible !important; }
+body .internship-hero::before, body .internship-hero::after, body .profile-hero::before, body .profile-hero::after { display:none !important; }
+body .internship-hero h1, body .profile-name { font-family:Inter,sans-serif !important; color:#0f172a !important; font-weight:750 !important; letter-spacing:-.025em !important; font-size:clamp(1.8rem,3.2vw,2.4rem) !important; line-height:1.15 !important; }
+body .internship-hero h1 br { display:none; }
+body .internship-hero p, body .profile-contact { color:#64748b !important; font-size:1rem !important; max-width:38rem; }
+body .hero-label, body .profile-hero-label { color:#4338ca !important; font-family:Inter,sans-serif !important; font-size:.72rem !important; font-weight:700 !important; letter-spacing:.08em !important; text-transform:uppercase !important; }
+body .hero-label-dot { background:#8b5cf6 !important; }
+body .hero-label::before { display:none !important; }
+body .profile-avatar { background:linear-gradient(135deg,#c7d2fe,#bcd4ff) !important; color:#312e81 !important; border:0 !important; box-shadow:0 10px 24px -10px rgba(67,56,202,.5); }
+body .profile-hero .profile-action { background:#fff !important; color:#0f172a !important; border:1px solid #d5dbe3 !important; box-shadow:0 1px 2px rgba(15,23,42,.04) !important; }
+/* surfaces */
+body .search-panel, body .internship-card, body .profile-card, body .experience-item { background:#fff !important; border:1px solid #e8ecf1 !important; border-radius:22px !important; box-shadow:0 1px 2px rgba(15,23,42,.04), 0 14px 34px -20px rgba(15,23,42,.16) !important; }
+body .completion-item, body .education-item, body .project-item { background:#f8fafc !important; border:1px solid #eef1f5 !important; border-radius:14px !important; box-shadow:none !important; }
+body .internship-card { border-left:1px solid #e8ecf1 !important; transition:transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s cubic-bezier(.22,1,.36,1) !important; }
+body .internship-card:hover { transform:translateY(-4px) !important; box-shadow:0 26px 50px -24px rgba(67,56,202,.4) !important; border-color:#d6cfff !important; }
+body .internship-card::before { display:none !important; }
+/* buttons + inputs */
+body .btn-find, body .primary-button { background:linear-gradient(135deg,#4338ca,#8b5cf6) !important; color:#fff !important; border:0 !important; border-radius:999px !important; box-shadow:0 10px 22px -10px rgba(67,56,202,.7) !important; font-weight:600 !important; padding:.8rem 1.4rem !important; transition:transform .25s, box-shadow .25s !important; }
+body .btn-find:hover, body .primary-button:hover { transform:translateY(-2px) !important; box-shadow:0 16px 28px -10px rgba(67,56,202,.8) !important; }
+body .btn-reset, body .secondary-button, body .btn-career-link, body .btn-track, body .delete-button { background:#fff !important; color:#334155 !important; border:1px solid #d5dbe3 !important; border-radius:999px !important; box-shadow:0 1px 2px rgba(15,23,42,.04) !important; font-weight:600 !important; transition:transform .25s, background .2s !important; }
+body .btn-reset:hover, body .secondary-button:hover, body .btn-career-link:hover, body .btn-track:hover { background:#f8fafc !important; transform:translateY(-1px) !important; }
+body .btn-track.tracked, body .btn-track:disabled { background:#ecfdf5 !important; color:#047857 !important; border-color:#a7f3d0 !important; }
+body .internship-search, body .filter-select, body .profile-input, body .profile-select, body .profile-textarea { border:1px solid #d5dbe3 !important; border-radius:14px !important; background:#fff !important; color:#0f172a !important; box-shadow:none !important; transition:border-color .2s, box-shadow .2s !important; }
+body .internship-search { padding-top:.95rem !important; padding-bottom:.95rem !important; font-size:1rem !important; }
+body .internship-search:focus, body .filter-select:focus, body .profile-input:focus, body .profile-select:focus, body .profile-textarea:focus { outline:none !important; border-color:#8b5cf6 !important; box-shadow:0 0 0 4px rgba(139,92,246,.15) !important; }
+/* chips + badges */
+body .skill-chip, body .meta-pill, body .technology-chip, body .project-tech-chip { background:#f1f5f9 !important; border:0 !important; color:#334155 !important; border-radius:999px !important; font-weight:500 !important; }
+body .skill-chip.match { background:#dcfce7 !important; color:#166534 !important; }
+body .skill-chip.gap { background:#fee2e2 !important; color:#991b1b !important; }
+body .skill-chip.preferred { background:#e0f2fe !important; color:#075985 !important; }
+body .recommendation-badge { border:0 !important; font-weight:600 !important; border-radius:999px !important; }
+body .recommendation-badge.strong { background:#dcfce7 !important; color:#166534 !important; }
+body .recommendation-badge.good { background:#e0f2fe !important; color:#075985 !important; }
+body .recommendation-badge.potential { background:#ede9fe !important; color:#5b21b6 !important; }
+body .recommendation-badge.low { background:#fee2e2 !important; color:#991b1b !important; }
+body .skill-heading, body .preferred-heading, body .breakdown-title, body .detail-title { color:#334155 !important; font-weight:650 !important; }
+body .compat, body .match-label, body .breakdown-total, body .results-count, body .company-name { color:#64748b !important; }
+body .skill-section, body .preferred-section, body .breakdown-section { border:0 !important; border-radius:14px !important; background:#f8fafc !important; }
+body .details-toggle { color:#4338ca !important; font-weight:600 !important; cursor:pointer; }
+body .more-details { margin-top:14px; }
+body .more-details > summary { list-style:none; }
+body .more-body { display:grid; gap:14px; margin-top:14px; animation:rise .4s cubic-bezier(.22,1,.36,1) both; }
+body .score-ring { background:conic-gradient(#8b5cf6 var(--score), #e6eaf0 var(--score)) !important; box-shadow:0 8px 20px -10px rgba(139,92,246,.6); }
+body .score-ring::before { background:#fff !important; }
+body .score-progress-bar, body .completion-fill { background:linear-gradient(90deg,#8b5cf6,#f472b6) !important; border-radius:99px !important; }
+body .completion-track, body .score-progress { background:#eaeef3 !important; border:0 !important; border-radius:99px !important; }
+body .analysis-box { background:#f5f3ff !important; border:0 !important; border-radius:16px !important; }
+body .section-title, body .job-title, body .card-rank { color:#0f172a !important; font-family:Inter,sans-serif !important; font-weight:700 !important; }
+body .completion-score { color:#4338ca !important; }
+body .filter-icon { background:#f5f3ff !important; color:#4338ca !important; border:0 !important; }
+/* simple search: filters tucked away */
+body .search-title, body .search-hint, body .filter-heading { display:none !important; }
+body .filter-panel:not(.open) .filter-grid { display:none !important; }
+body .filter-panel.open .filter-grid { display:grid; animation:rise .35s cubic-bezier(.22,1,.36,1) both; margin-bottom:18px; }
+body .filter-panel { border:0 !important; background:transparent !important; padding:14px 0 0 !important; box-shadow:none !important; }
+.filters-toggle { margin-top:12px; display:inline-flex; align-items:center; gap:.4rem; font-weight:600; font-size:.85rem; color:#4338ca; background:#f5f3ff; border:0; border-radius:999px; padding:.5rem .9rem; cursor:pointer; transition:background .2s, transform .2s; }
+.filters-toggle:hover { background:#ebe7ff; transform:translateY(-1px); }
+.filters-toggle svg { transition:transform .3s cubic-bezier(.22,1,.36,1); } .filters-toggle.open svg { transform:rotate(180deg); }
+</style>
+
+
+
+<div class="profile-page">
+
+
+    <!-- =====================================================
+         PROFILE HERO
+         ====================================================== -->
+
+    <section class="profile-hero">
+
+        <div class="profile-hero-content">
+
+            <div class="profile-avatar">
+                {{ student.full_name[:1]|upper }}
+            </div>
+
+
+            <div class="profile-hero-info">
+
+                <div class="profile-hero-label">
+                    Candidate Profile
+                </div>
+
+                <h1 class="profile-name">
+                    {{ student.full_name }}
+                </h1>
+
+                <p class="profile-contact">
+                    {{ student.email }}
+
+                    {% if student.location %}
+                        <span> · </span>
+                        {{ student.location }}
+                    {% endif %}
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for('upload_resume') }}"
+                class="profile-action"
+            >
+                Manage Resumes
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PROFILE COMPLETION
+         ====================================================== -->
+
+    <section class="profile-card completion-card">
+
+        <div class="completion-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    Profile health
+                </div>
+
+                <h2 class="section-title">
+                    Profile completion
+                </h2>
+
+            </div>
+
+            <div class="completion-score">
+                {{ completion }}%
+            </div>
+
+        </div>
+
+
+        <div class="completion-track">
+
+            <div
+                class="completion-fill"
+                style="width: 0%;"
+                data-completion="{{ completion }}"
+            ></div>
+
+
+        <div class="completion-grid">
+
+            {% for label, ok in [
+                ('Contact', student.phone and student.location),
+                ('Skills', student.skills),
+                ('Education', student.education),
+                ('Experience', student.experience),
+                ('Projects', student.projects),
+                ('Links', student.github or student.linkedin),
+                ('Bio', student.bio),
+                ('Resume', student.resumes)
+            ] %}
+
+                <div class="completion-item">
+
+                    <span
+                        class="
+                            completion-check
+                            {% if ok %}complete{% endif %}
+                        "
+                    >
+                        {% if ok %}
+                            ✓
+                        {% else %}
+                            ○
+                        {% endif %}
+                    </span>
+
+                    <span>
+                        {{ label }}
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PERSONAL INFORMATION
+         ====================================================== -->
+
+    <form
+        method="post"
+        action="{{ url_for('update_profile') }}"
+        class="profile-card form-card"
+    >
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    About you
+                </div>
+
+                <h2 class="section-title">
+                    Personal information
+                </h2>
+
+                <p class="section-description">
+                    Keep your contact and profile information up to date.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+
+            <!-- Full Name -->
+
+            <div class="form-field">
+
+                <label
+                    for="full_name"
+                    class="form-label"
+                >
+                    Full Name
+                </label>
+
+                <input
+                    id="full_name"
+                    name="full_name"
+                    value="{{ student.full_name or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- Phone -->
+
+            <div class="form-field">
+
+                <label
+                    for="phone"
+                    class="form-label"
+                >
+                    Phone
+                </label>
+
+                <input
+                    id="phone"
+                    name="phone"
+                    value="{{ student.phone or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- Location -->
+
+            <div class="form-field">
+
+                <label
+                    for="location"
+                    class="form-label"
+                >
+                    Location
+                </label>
+
+                <input
+                    id="location"
+                    name="location"
+                    value="{{ student.location or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- LinkedIn -->
+
+            <div class="form-field">
+
+                <label
+                    for="linkedin"
+                    class="form-label"
+                >
+                    LinkedIn URL
+                </label>
+
+                <input
+                    id="linkedin"
+                    name="linkedin"
+                    value="{{ student.linkedin or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- GitHub -->
+
+            <div class="form-field">
+
+                <label
+                    for="github"
+                    class="form-label"
+                >
+                    GitHub URL
+                </label>
+
+                <input
+                    id="github"
+                    name="github"
+                    value="{{ student.github or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- Portfolio -->
+
+            <div class="form-field">
+
+                <label
+                    for="portfolio"
+                    class="form-label"
+                >
+                    Portfolio URL
+                </label>
+
+                <input
+                    id="portfolio"
+                    name="portfolio"
+                    value="{{ student.portfolio or '' }}"
+                    class="profile-input"
+                >
+
+            </div>
+
+
+            <!-- Bio -->
+
+            <div class="form-field full">
+
+                <label
+                    for="bio"
+                    class="form-label"
+                >
+                    About / Bio
+                </label>
+
+                <textarea
+                    id="bio"
+                    name="bio"
+                    rows="4"
+                    class="profile-textarea"
+                    placeholder="Tell employers a little about yourself..."
+                >{{ student.bio or '' }}</textarea>
+
+            </div>
+
+        </div>
+
+
+        <div style="margin-top: 18px;">
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </form>
+
+
+    <!-- =====================================================
+         SKILLS
+         ====================================================== -->
+
+    <section class="profile-card skills-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    Capabilities
+                </div>
+
+                <h2 class="section-title">
+                    Skills
+                </h2>
+
+                <p class="section-description">
+                    Add the technical and professional skills you have.
+                </p>
+
+            </div>
+
+            <span class="total-label">
+                {{ student.skills|length }} total
+            </span>
+
+        </div>
+
+
+        <div class="skill-list">
+
+            {% for s in student.skills %}
+
+                <span class="skill-chip">
+
+                    <span>
+                        {{ s.name }}
+                    </span>
+
+                    {% if s.category %}
+                        <span class="skill-category">
+                            {{ s.category }}
+                        </span>
+                    {% endif %}
+
+                    <form
+                        method="post"
+                        action="{{ url_for('delete_skill', item_id=s.id) }}"
+                        style="display: inline;"
+                    >
+
+                        <button
+                            type="submit"
+                            class="delete-inline"
+                            title="Delete skill"
+                        >
+                            ×
+                        </button>
+
+                    </form>
+
+                </span>
+
+            {% else %}
+
+                <p class="empty-message">
+                    No skills added yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Add Skill -->
+
+        <form
+            method="post"
+            action="{{ url_for('add_skill') }}"
+            class="add-form"
+        >
+
+            <input
+                name="name"
+                required
+                placeholder="Add a skill"
+                class="profile-input"
+            >
+
+
+            <select
+                name="category"
+                class="profile-select"
+            >
+
+                <option value="technical">
+                    Technical
+                </option>
+
+                <option value="soft">
+                    Soft Skills
+                </option>
+
+                <option value="tools">
+                    Tools
+                </option>
+
+                <option value="languages">
+                    Languages
+                </option>
+
+                <option value="frameworks">
+                    Frameworks
+                </option>
+
+                <option value="databases">
+                    Databases
+                </option>
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="secondary-button"
+            >
+                Add Skill
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         EDUCATION
+         ====================================================== -->
+
+    <section class="profile-card education-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    Academic background
+                </div>
+
+                <h2 class="section-title">
+                    Education
+                </h2>
+
+                <p class="section-description">
+                    Add your academic qualifications and achievements.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Education list -->
+
+        <div class="education-grid">
+
+            {% for e in student.education %}
+
+                <article class="education-item">
+
+                    <h3 class="item-title">
+                        {{ e.degree }}
+                    </h3>
+
+
+                    <p class="item-subtitle">
+                        {{ e.institution }}
+                    </p>
+
+
+                    {% if e.field_of_study %}
+
+                        <p class="item-meta">
+                            {{ e.field_of_study }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if e.start_date or e.end_date %}
+
+                        <p class="item-meta">
+
+                            {{ e.start_date or '' }}
+
+                            {% if e.start_date or e.end_date %}
+                                –
+                            {% endif %}
+
+                            {{ e.end_date or '' }}
+
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if e.grade %}
+
+                        <p class="item-grade">
+                            Grade / CGPA:
+                            {{ e.grade }}
+                        </p>
+
+                    {% endif %}
+
+
+                    <form
+                        method="post"
+                        action="{{ url_for('delete_education', item_id=e.id) }}"
+                    >
+
+                        <button
+                            type="submit"
+                            class="delete-button"
+                        >
+                            Delete education
+                        </button>
+
+                    </form>
+
+                </article>
+
+            {% else %}
+
+                <p class="empty-message">
+                    No education records yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Add Education -->
+
+        <form
+            method="post"
+            action="{{ url_for('add_education') }}"
+            style="
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(115, 115, 115,0.10);
+            "
+        >
+
+            <div class="form-grid">
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Degree
+                    </label>
+
+                    <input
+                        name="degree"
+                        required
+                        placeholder="e.g. B.Tech Computer Science"
+                        class="profile-input"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Institution
+                    </label>
+
+                    <input
+                        name="institution"
+                        required
+                        placeholder="College / University"
+                        class="profile-input"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Field of study
+                    </label>
+
+                    <input
+                        name="field_of_study"
+                        placeholder="e.g. Computer Science"
+                        class="profile-input"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Start date
+                    </label>
+
+                    <input
+                        name="start_date"
+                        placeholder="e.g. 2023"
+                        class="profile-input"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        End date
+                    </label>
+
+                    <input
+                        name="end_date"
+                        placeholder="e.g. 2027"
+                        class="profile-input"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label class="form-label">
+                        Grade / CGPA
+                    </label>
+
+                    <input
+                        name="grade"
+                        placeholder="e.g. 7.56 / 10"
+                        class="profile-input"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div style="margin-top: 15px;">
+
+                <button
+                    type="submit"
+                    class="secondary-button"
+                >
+                    Add Education
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         EXPERIENCE
+         ====================================================== -->
+
+    <section class="profile-card experience-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    Work history
+                </div>
+
+                <h2 class="section-title">
+                    Experience
+                </h2>
+
+                <p class="section-description">
+                    Highlight internships, jobs and relevant practical work.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Experience list -->
+
+        <div class="experience-list">
+
+            {% for e in student.experience %}
+
+                <article class="experience-item">
+
+                    <span class="experience-dot"></span>
+
+
+                    <h3 class="item-title">
+                        {{ e.job_title }}
+                    </h3>
+
+
+                    <p class="experience-company">
+
+                        {{ e.company }}
+
+                        {% if e.location %}
+                            <span> · </span>
+                            {{ e.location }}
+                        {% endif %}
+
+                    </p>
+
+
+                    {% if e.start_date or e.end_date %}
+
+                        <p class="experience-date">
+
+                            {{ e.start_date or '' }}
+
+                            {% if e.start_date or e.end_date %}
+                                –
+                            {% endif %}
+
+                            {{ e.end_date or '' }}
+
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if e.description %}
+
+                        <p class="experience-description">
+                            {{ e.description }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if e.technologies %}
+
+                        <div class="technology-list">
+
+                            {% for tech in e.technologies %}
+
+                                <span class="technology-chip">
+                                    {{ tech }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <form
+                        method="post"
+                        action="{{ url_for('delete_experience', item_id=e.id) }}"
+                    >
+
+                        <button
+                            type="submit"
+                            class="delete-button"
+                        >
+                            Delete experience
+                        </button>
+
+                    </form>
+
+                </article>
+
+            {% else %}
+
+                <p class="empty-message">
+                    No experience records yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Add Experience -->
+
+        <div class="experience-form">
+
+            <div class="section-eyebrow">
+                Add experience
+            </div>
+
+
+            <form
+                method="post"
+                action="{{ url_for('add_experience') }}"
+                style="margin-top: 14px;"
+            >
+
+                <div class="form-grid">
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Job title
+                        </label>
+
+                        <input
+                            name="job_title"
+                            required
+                            placeholder="e.g. Software Developer Intern"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Company
+                        </label>
+
+                        <input
+                            name="company"
+                            required
+                            placeholder="Company name"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Location
+                        </label>
+
+                        <input
+                            name="location"
+                            placeholder="e.g. Bengaluru"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Start date
+                        </label>
+
+                        <input
+                            name="start_date"
+                            placeholder="e.g. May 2026"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            End date
+                        </label>
+
+                        <input
+                            name="end_date"
+                            placeholder="e.g. Aug 2026"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Technologies
+                        </label>
+
+                        <input
+                            name="technologies"
+                            placeholder="Python, Flask, SQL"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field full">
+
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        <textarea
+                            name="description"
+                            placeholder="Describe your work, responsibilities and achievements..."
+                            class="profile-textarea"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div style="margin-top: 15px;">
+
+                    <button
+                        type="submit"
+                        class="secondary-button"
+                    >
+                        Add Experience
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PROJECTS
+         ====================================================== -->
+
+    <section class="profile-card projects-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    Portfolio work
+                </div>
+
+                <h2 class="section-title">
+                    Projects
+                </h2>
+
+                <p class="section-description">
+                    Showcase projects that demonstrate your technical skills.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Project list -->
+
+        <div class="project-grid">
+
+            {% for p in student.projects %}
+
+                <article class="project-item">
+
+                    <h3 class="item-title">
+                        {{ p.project_name }}
+                    </h3>
+
+
+                    {% if p.role %}
+
+                        <p class="project-role">
+                            {{ p.role }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if p.description %}
+
+                        <p class="project-description">
+                            {{ p.description }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if p.technologies %}
+
+                        <div class="project-tech">
+
+                            {% for tech in p.technologies %}
+
+                                <span class="project-tech-chip">
+                                    {{ tech }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="project-links">
+
+                        {% if p.github_url %}
+
+                            <a
+                                href="{{ p.github_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GitHub ↗
+                            </a>
+
+                        {% endif %}
+
+
+                        {% if p.live_url %}
+
+                            <a
+                                href="{{ p.live_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Live Project ↗
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <form
+                        method="post"
+                        action="{{ url_for('delete_project', item_id=p.id) }}"
+                    >
+
+                        <button
+                            type="submit"
+                            class="delete-button"
+                        >
+                            Delete project
+                        </button>
+
+                    </form>
+
+                </article>
+
+            {% else %}
+
+                <p class="empty-message">
+                    No projects added yet.
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Add Project -->
+
+        <div
+            style="
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(115, 115, 115,0.10);
+            "
+        >
+
+            <div class="section-eyebrow">
+                Add project
+            </div>
+
+
+            <form
+                method="post"
+                action="{{ url_for('add_project') }}"
+                style="margin-top: 14px;"
+            >
+
+                <div class="form-grid">
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Project name
+                        </label>
+
+                        <input
+                            name="project_name"
+                            required
+                            placeholder="Project name"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Role
+                        </label>
+
+                        <input
+                            name="role"
+                            placeholder="e.g. Developer"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            GitHub URL
+                        </label>
+
+                        <input
+                            name="github_url"
+                            placeholder="https://github.com/..."
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label class="form-label">
+                            Live URL
+                        </label>
+
+                        <input
+                            name="live_url"
+                            placeholder="https://..."
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field full">
+
+                        <label class="form-label">
+                            Technologies
+                        </label>
+
+                        <input
+                            name="technologies"
+                            placeholder="Python, Flask, MySQL, Docker"
+                            class="profile-input"
+                        >
+
+                    </div>
+
+
+                    <div class="form-field full">
+
+                        <label class="form-label">
+                            Description
+                        </label>
+
+                        <textarea
+                            name="description"
+                            placeholder="Describe the project and your contribution..."
+                            class="profile-textarea"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div style="margin-top: 15px;">
+
+                    <button
+                        type="submit"
+                        class="secondary-button"
+                    >
+                        Add Project
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+    requestAnimationFrame(function () {
+        document.querySelectorAll("[data-completion]").forEach(function (element) {
+            const completion = Number(element.dataset.completion || 0);
+
+            element.style.width =
+                Math.max(0, Math.min(100, completion)) + "%";
+        });
+    });
+</script>
+
+
+<style>
+  .ptabs { display:flex; gap:4px; padding:5px; background:rgba(15,23,42,.05); border-radius:999px; width:max-content; max-width:100%; overflow-x:auto; margin:18px 0 22px; position:relative; }
+  .ptab { position:relative; z-index:1; border:0; background:transparent; padding:.55rem 1.05rem; border-radius:999px; font:600 .86rem Inter,sans-serif; color:#475569; cursor:pointer; white-space:nowrap; transition:color .2s; }
+  .ptab.on { color:#4338ca; }
+  .ppill { position:absolute; z-index:0; top:5px; bottom:5px; left:0; border-radius:999px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.10); transition:transform .4s cubic-bezier(.22,1,.36,1), width .4s cubic-bezier(.22,1,.36,1); }
+  .ppanel { animation:rise .45s cubic-bezier(.22,1,.36,1) both; }
+  body .completion-card .completion-grid { display:none !important; }
+  body .completion-card .section-eyebrow { display:none; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var page = document.querySelector(".profile-page"); if (!page) return;
+  var panels = [
+    ["Basics", page.querySelector("form.form-card")],
+    ["Skills", page.querySelector(".skills-card")],
+    ["Education", page.querySelector(".education-card")],
+    ["Experience", page.querySelector(".experience-card")],
+    ["Projects", page.querySelector(".projects-card")]
+  ].filter(function (p) { return p[1]; });
+  if (!panels.length) return;
+  var bar = document.createElement("div"); bar.className = "ptabs";
+  var pill = document.createElement("span"); pill.className = "ppill"; bar.appendChild(pill);
+  var btns = panels.map(function (p, i) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "ptab"; b.textContent = p[0];
+    b.onclick = function () { show(i); }; bar.appendChild(b); return b;
+  });
+  panels[0][1].parentNode.insertBefore(bar, panels[0][1]);
+  function show(i) {
+    panels.forEach(function (p, j) { p[1].style.display = j === i ? "" : "none"; if (j === i) { p[1].classList.remove("ppanel"); void p[1].offsetWidth; p[1].classList.add("ppanel"); } });
+    btns.forEach(function (b, j) { b.classList.toggle("on", j === i); });
+    pill.style.width = btns[i].offsetWidth + "px"; pill.style.transform = "translateX(" + btns[i].offsetLeft + "px)";
+    try { sessionStorage.setItem("ptab", panels[i][0].toLowerCase()); } catch (e) {}
+  }
+  var start = Math.max(0, panels.findIndex(function (p) { var h = location.hash.slice(1) || (function () { try { return sessionStorage.getItem("ptab"); } catch (e) { return ""; } })(); return p[0].toLowerCase() === h; }));
+  show(start); window.addEventListener("resize", function () { show(start); });
+  if (document.fonts) document.fonts.ready.then(function () { show(start); });
+});
+</script>
+{% endblock %}

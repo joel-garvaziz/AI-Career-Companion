@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Create account{% endblock %}
+{% block content %}
+<div class="min-h-[78vh] grid place-items-center px-4 py-10">
+  <div class="w-full max-w-md animate-pop">
+    <div class="text-center">
+      <span class="logo-mark float mx-auto !h-14 !w-14 !rounded-2xl"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+      <h1 class="mt-5 font-display text-3xl">Create your account</h1>
+      <p class="mt-1 muted">Free, and it takes about a minute.</p>
+    </div>
+    <form method="post" class="card mt-8 p-7 space-y-5">
+      <div><label class="lbl">Full name</label><input class="input" name="full_name" type="text" required autofocus autocomplete="name" placeholder="Your name" value="{{ request.form.get('full_name', '') }}"></div>
+      <div><label class="lbl">Email</label><input class="input" name="email" type="email" required autocomplete="email" placeholder="you@example.com" value="{{ request.form.get('email', '') }}"></div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="lbl">Password</label><input class="input" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="8+ characters"></div>
+        <div><label class="lbl">Confirm</label><input class="input" name="confirm_password" type="password" minlength="8" required autocomplete="new-password" placeholder="Repeat it"></div>
+      </div>
+      <button class="btn btn-ink w-full !py-3.5">Create account</button>
+    </form>
+    <p class="mt-6 text-center text-sm muted">Already have one? <a class="font-semibold text-brand-600 hover:underline" href="{{ url_for('login') }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

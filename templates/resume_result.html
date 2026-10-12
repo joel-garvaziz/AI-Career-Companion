@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Resume ready{% endblock %}
+{% block content %}
+{% set skills = (parsed.technical_skills or []) + (parsed.programming_languages or []) + (parsed.frameworks or []) + (parsed.tools or []) + (parsed.databases or []) + (parsed.soft_skills or []) %}
+{% set uniq = [] %}{% for s in skills %}{% if s not in uniq %}{% set _ = uniq.append(s) %}{% endif %}{% endfor %}
+{% set education = parsed.education or [] %}
+{% set experience = parsed.experience or [] %}
+{% set projects = parsed.projects or [] %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-16 text-center">
+  <span class="mx-auto grid h-20 w-20 place-items-center rounded-full text-white animate-pop" style="background:linear-gradient(135deg,#4338ca,#8b5cf6);box-shadow:0 20px 40px -14px rgba(67,56,202,.6)">
+    <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" style="stroke-dasharray:30;stroke-dashoffset:30;animation:draw .7s .25s ease forwards"/></svg>
+  </span>
+  <h1 class="mt-6 font-display text-3xl md:text-4xl">Your resume is ready</h1>
+  <p class="mt-2 muted">We read <b class="text-ink">{{ resume.original_filename }}</b> and filled in your profile. Your other resumes were not replaced.</p>
+
+  <div class="mt-9 grid grid-cols-3 gap-3 md:gap-5 text-left">
+    {% for l, v in [('Skills', uniq|length), ('Education', education|length), ('Projects', projects|length + experience|length)] %}
+    <div data-reveal class="card p-5"><p class="text-sm muted font-medium">{{ l }}</p><p class="mt-1 text-4xl font-bold tracking-tight tnum"><span data-count-to="{{ v }}">0</span></p></div>
+    {% endfor %}
+  </div>
+
+  {% if uniq %}
+  <div data-reveal class="card mt-5 p-6 text-left">
+    <p class="font-semibold">Skills we found</p>
+    <div class="mt-3 flex flex-wrap gap-2">{% for sk in uniq[:24] %}<span class="chip bg-lilac" style="border-color:transparent">{{ sk }}</span>{% endfor %}{% if uniq|length > 24 %}<span class="chip">+{{ uniq|length - 24 }} more</span>{% endif %}</div>
+  </div>
+  {% else %}
+  <div data-reveal class="card mt-5 p-6 text-left"><p class="font-semibold">We could not find any skills</p><p class="mt-1 text-sm muted">You can add them yourself on your profile.</p></div>
+  {% endif %}
+
+  <div data-reveal class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+    <a href="{{ url_for('profile') }}" class="btn btn-white !py-3.5 !px-6">Review my profile</a>
+    <a href="{{ url_for('internships') }}" class="btn btn-ink !py-3.5 !px-7">See matching internships</a>
+  </div>
+  <p class="mt-4 text-sm muted">Something look wrong? You can edit anything on your profile.</p>
+</div>
+<style>@keyframes draw { to { stroke-dashoffset:0; } }</style>
+{% endblock %}

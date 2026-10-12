@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Find your internship{% endblock %}
+{% block content %}
+<style>
+  .stage { perspective:1400px; }
+  .tilt { transform-style:preserve-3d; transition:transform .25s var(--ease); will-change:transform; }
+  .fcard { position:absolute; }
+  .step-line { background:linear-gradient(90deg,#8b5cf6 0 var(--p,0%),#e2e8f0 var(--p,0%) 100%); }
+  .ring { --v:0; width:64px; height:64px; border-radius:50%; background:conic-gradient(#8b5cf6 calc(var(--v)*1%), #e6eaf0 0); display:grid; place-items:center; transition:--v 1.4s; }
+  .ring b { display:grid; place-items:center; width:50px; height:50px; border-radius:50%; background:#fff; font-size:.85rem; }
+  .marquee { display:flex; gap:.75rem; width:max-content; animation:marq 40s linear infinite; }
+  @keyframes marq { to { transform:translateX(-50%); } }
+</style>
+
+<!-- hero -->
+<section class="relative">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 md:pt-24 pb-12 grid lg:grid-cols-2 gap-14 items-center">
+    <div>
+      <span data-reveal class="chip" style="background:#fff"><i class="inline-block h-2 w-2 rounded-full bg-brand-500" style="animation:pulseRing 2s infinite"></i> Built for students and freshers</span>
+      <h1 data-reveal class="mt-6 font-display text-[2.6rem] sm:text-6xl leading-[1.04]">Find the internship <span class="grad-text">that fits you.</span></h1>
+      <p data-reveal class="mt-5 text-lg muted max-w-lg">Upload your resume once. See the roles you're best suited for, know exactly what to improve, and keep every application organised.</p>
+      <div data-reveal class="mt-8 flex flex-wrap gap-3">
+        <a href="{{ url_for('register') }}" class="btn btn-ink !py-3.5 !px-7 !text-base">Get started - it's free</a>
+        <a href="#how" class="btn btn-white !py-3.5 !px-7 !text-base">See how it works</a>
+      </div>
+    </div>
+
+    <!-- floating preview -->
+    <div data-reveal class="stage relative h-[380px] md:h-[440px]" id="stage">
+      <div class="tilt absolute inset-0" id="tilt">
+        <div class="fcard card p-5 float" style="left:2%;top:4%;width:min(78%,330px);transform:translateZ(40px)">
+          <div class="flex items-center gap-4"><div class="ring" style="--v:93"><b class="font-bold tnum">93%</b></div><div><p class="font-semibold leading-tight">Full Stack Developer Intern</p><p class="text-sm muted">Bengaluru · 6 months</p></div></div>
+          <div class="mt-4 flex flex-wrap gap-1.5"><span class="chip bg-mint">Python</span><span class="chip bg-mint">SQL</span><span class="chip bg-mint">Git</span></div>
+        </div>
+        <div class="fcard card p-5 float" style="right:0;top:34%;width:min(74%,300px);animation-delay:-2s;transform:translateZ(80px)">
+          <p class="eyebrow">What to work on</p>
+          <p class="mt-2 font-semibold">Learn FastAPI in ~5 days</p>
+          <p class="text-sm muted">You already use Flask in your projects, so this is a small step.</p>
+          <div class="mt-3 h-2 rounded-full bg-soft overflow-hidden"><div class="h-full w-2/3 rounded-full" style="background:linear-gradient(90deg,#8b5cf6,#f472b6)"></div></div>
+        </div>
+        <div class="fcard card p-4 float" style="left:8%;bottom:2%;width:min(66%,270px);animation-delay:-4s;transform:translateZ(20px)">
+          <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-lilac text-[#6d28d9]"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><div><p class="text-sm font-semibold">Interview on Friday</p><p class="text-xs muted">Data Analyst Intern</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- features -->
+<section id="features" class="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+  <div class="max-w-2xl"><p data-reveal class="eyebrow">Everything in one place</p><h2 data-reveal class="mt-2 font-display text-3xl sm:text-4xl">One simple workspace for your whole search</h2></div>
+  <div class="mt-10 grid md:grid-cols-3 gap-5">
+    {% for t, d, p in [
+      ('Roles that fit you','We read your resume and rank internships by how well you match, and show why.','M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z'),
+      ('A plan to improve','See the skills you are missing and a short, realistic plan to build each one.','M12 3l2.4 5.6L20 9.5l-4.3 3.9L17 20l-5-3-5 3 1.3-6.6L4 9.5l5.6-.9z'),
+      ('Stay on top of it all','Track applications, deadlines and interviews, with gentle reminders.','M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6M9 13l2 2 4-4')] %}
+    <div data-reveal class="card card-hover p-7">
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-600"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ p }}"/></svg></span>
+      <h3 class="mt-5 text-lg font-bold">{{ t }}</h3><p class="mt-2 muted">{{ d }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- how -->
+<section id="how" class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+  <div class="card p-8 md:p-12">
+    <p data-reveal class="eyebrow">How it works</p><h2 data-reveal class="mt-2 font-display text-3xl">Three steps to a better search</h2>
+    <div class="mt-10 grid md:grid-cols-3 gap-8">
+      {% for n, t, d in [('1','Upload your resume','Your skills and projects are filled in for you.'),('2','See your best matches','Ranked roles with a clear reason for each.'),('3','Prepare and apply','Tailor your resume, practise interviews, track progress.')] %}
+      <div data-reveal><span class="grid h-11 w-11 place-items-center rounded-full font-bold text-white" style="background:linear-gradient(135deg,#4338ca,#8b5cf6)">{{ n }}</span><h3 class="mt-4 font-bold text-lg">{{ t }}</h3><p class="mt-1 muted">{{ d }}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- faq -->
+<section id="faq" class="max-w-3xl mx-auto px-4 sm:px-6 pb-24">
+  <h2 data-reveal class="font-display text-3xl text-center">Questions</h2>
+  <div class="mt-8 space-y-3">
+    {% for q, a in [
+      ('Is it free?','Yes. Create an account, upload your resume and you are ready to go.'),
+      ('Is my information private?','Your details are only visible to you. You can download or delete everything from Settings at any time.'),
+      ('How is my match worked out?','We compare your skills, education and experience with what each internship asks for, and show what you already have and what to work on.'),
+      ('Which resumes can I upload?','PDF files with selectable text. Scanned photos of a resume are not supported yet.')] %}
+    <details data-reveal class="card px-6 py-4 group"><summary class="cursor-pointer font-semibold list-none flex justify-between items-center">{{ q }}<span class="muted text-xl transition-transform group-open:rotate-45">+</span></summary><p class="mt-3 muted">{{ a }}</p></details>
+    {% endfor %}
+  </div>
+  <div data-reveal class="mt-14 text-center"><a href="{{ url_for('register') }}" class="btn btn-ink !py-4 !px-9 !text-base">Start for free</a></div>
+</section>
+
+<script>
+  (function () {
+    const stage = document.getElementById('stage'), tilt = document.getElementById('tilt'); if (!stage) return;
+    stage.addEventListener('mousemove', e => { const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; tilt.style.transform = `rotateY(${x * 14}deg) rotateX(${-y * 12}deg)`; });
+    stage.addEventListener('mouseleave', () => tilt.style.transform = '');
+  })();
+</script>
+{% endblock %}

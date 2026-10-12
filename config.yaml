@@ -1,0 +1,2 @@
+# Non-secret configuration only. Put OPENROUTER_API_KEY in .env
+OPENROUTER_MODEL: openai/gpt-4o-mini

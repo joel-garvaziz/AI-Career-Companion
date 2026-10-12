@@ -1,0 +1,17 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="space-y-2.5 mb-2" id="flashStack" role="status" aria-live="polite">
+  {% for category, message in messages %}
+  {% set c = {'error': ('#fef2f2', '#fecaca', '#991b1b', '#ef4444'), 'success': ('#ecfdf5', '#a7f3d0', '#065f46', '#10b981')}.get(category, ('#eef2ff', '#c7d2fe', '#3730a3', '#6366f1')) %}
+  <div class="flash animate-pop flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium" style="background:{{ c[0] }};border:1px solid {{ c[1] }};color:{{ c[2] }}">
+    <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full text-white text-xs font-bold" style="background:{{ c[3] }}">{{ '!' if category == 'error' else '✓' if category == 'success' else 'i' }}</span>
+    <span class="flex-1">{{ message }}</span>
+    <button type="button" aria-label="Dismiss" class="grid h-6 w-6 place-items-center rounded-full opacity-60 hover:opacity-100 transition" onclick="this.closest('.flash').remove()">✕</button>
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function () { document.querySelectorAll('.flash').forEach(function (f) { f.style.transition = 'opacity .4s, transform .4s'; f.style.opacity = 0; f.style.transform = 'translateY(-6px)'; setTimeout(function () { f.remove(); }, 420); }); }, 6500);
+</script>
+{% endif %}
+{% endwith %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}My resumes{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+  <section data-reveal class="page-banner">
+    <p class="eyebrow">Resume library</p>
+    <h1 class="mt-2 font-display">Drop it in. <span class="hl">We'll read it.</span></h1>
+    <p class="mt-2 max-w-xl">Keep separate versions for different roles. Uploading never replaces an existing resume.</p>
+  </section>
+
+  <form id="resumeForm" data-reveal action="{{ url_for('process_resume') }}" method="post" enctype="multipart/form-data" class="mt-8">
+    <label id="dropZone" for="resume" class="card block cursor-pointer p-10 md:p-14 text-center bg-mint card-hover" style="border-style:dashed">
+      <div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl border-2 border-ink bg-white font-display font-extrabold text-2xl">↑</div>
+      <h2 class="mt-5 font-display font-extrabold text-3xl">Drop your resume here</h2>
+      <p class="mt-2 font-medium">or click to browse · PDF · max 5 MB</p>
+      <input id="resume" name="resume" type="file" accept=".pdf,application/pdf" required class="sr-only">
+    </label>
+    <div id="fileInfo" class="hidden animate-pop card-flat mt-4 p-4 bg-white flex items-center gap-3">
+      <span class="chip bg-lilac">PDF</span><div class="min-w-0 flex-1"><p id="fileName" class="truncate font-semibold"></p><p id="fileSize" class="text-xs muted"></p></div><span class="font-bold text-sm">Ready ✓</span>
+    </div>
+    <button id="submitBtn" type="submit" class="btn btn-ink w-full mt-5 py-4 text-base">Analyze resume →</button>
+    <div id="loading" class="hidden animate-pop card-flat mt-4 p-5 bg-sky flex items-center gap-3">
+      <div class="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent"></div>
+      <div><p class="font-bold">Reading your resume…</p><p class="text-sm">Extracting skills, education, experience and projects.</p></div>
+    </div>
+  </form>
+
+  <section data-reveal class="mt-14">
+    <h2 class="font-display font-extrabold text-3xl">Saved versions <span class="chip bg-white align-middle ml-2"><span data-count-to="{{ student.resumes|length }}">0</span></span></h2>
+    {% if student.resumes %}
+    <div class="mt-5 grid md:grid-cols-2 gap-5">
+      {% for r in student.resumes|sort(attribute='uploaded_at', reverse=true) %}
+      <article class="card card-hover p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0"><p class="font-bold truncate" title="{{ r.original_filename }}">{{ r.original_filename }}</p><p class="text-xs muted mt-1">{{ r.uploaded_at.strftime('%d %b %Y, %I:%M %p') }} · {{ '%.1f'|format(r.file_size / 1024) }} KB</p></div>
+          <span class="chip {{ 'bg-mint' if r.parsing_status == 'completed' else 'bg-sky' if r.parsing_status == 'processing' else 'bg-blush' }}">{{ 'Ready' if r.parsing_status == 'completed' else 'Processing' if r.parsing_status == 'processing' else 'Could not read' }}</span>
+        </div>
+        {% if r.parsing_error %}<p class="mt-3 card-flat bg-blush px-3 py-2 text-xs font-semibold">{{ r.parsing_error }}</p>{% endif %}
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href="{{ url_for('view_resume', resume_id=r.id) }}" target="_blank" class="btn btn-white btn-sm">View</a>
+          <a href="{{ url_for('download_resume', resume_id=r.id) }}" class="btn btn-white btn-sm">Download</a>
+          <button type="button" onclick="deleteResume({{ r.id }})" class="btn btn-danger btn-sm ml-auto">Delete</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}<div class="card-flat mt-5 p-10 text-center bg-white border-dashed"><p class="muted">Your uploaded resumes will appear here.</p></div>{% endif %}
+  </section>
+</div>
+
+{% for r in student.resumes %}<form id="deleteForm-{{ r.id }}" method="post" action="{{ url_for('delete_resume', resume_id=r.id) }}" class="hidden"></form>{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const input = document.getElementById('resume'), dropZone = document.getElementById('dropZone'), fileInfo = document.getElementById('fileInfo');
+const MAX = 5 * 1024 * 1024;
+function showFile(f) {
+  if (!f) return;
+  if (!(f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))) { showToast('Please choose a PDF resume.', 'error'); input.value = ''; fileInfo.classList.add('hidden'); return; }
+  if (f.size > MAX) { showToast('The resume must be smaller than 5 MB.', 'error'); input.value = ''; fileInfo.classList.add('hidden'); return; }
+  fileName.textContent = f.name; fileSize.textContent = (f.size / 1024).toFixed(1) + ' KB'; fileInfo.classList.remove('hidden');
+}
+input.addEventListener('change', () => showFile(input.files[0]));
+['dragenter','dragover'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.background = '#fff'; }));
+['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.background = ''; }));
+dropZone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) { try { const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files; } catch (_) {} showFile(f); } });
+resumeForm.addEventListener('submit', () => { submitBtn.disabled = true; submitBtn.textContent = 'Analyzing…'; loading.classList.remove('hidden'); });
+async function deleteResume(id) {
+  if (await confirmDialog('This resume file will be permanently removed.', { title: 'Delete this resume?', confirmLabel: 'Delete' })) document.getElementById('deleteForm-' + id).submit();
+}
+</script>
+{% endblock %}

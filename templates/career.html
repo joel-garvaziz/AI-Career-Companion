@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Career coach{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <section data-reveal class="page-banner">
+    <p class="eyebrow">Career coach</p>
+    <h1 class="mt-2 font-display">Get ready for the <span class="grad-text">role you want.</span></h1>
+    <p class="mt-2 max-w-2xl">Choose an internship, then see what to improve or ask anything.</p>
+  </section>
+
+  <section data-reveal class="card mt-7 p-5 md:p-6">
+    <label class="lbl">Which internship are you thinking about?</label>
+    <div class="flex flex-col md:flex-row gap-3">
+      <select id="jobSelect" class="input flex-1">
+        <option value="">Choose a role…</option>
+        {% for job in jobs %}<option value="{{ job.job_id }}">{{ job.job_title }} — {{ job.company }} ({{ job.location }})</option>{% endfor %}
+      </select>
+      <a href="{{ url_for('internships') }}" class="btn btn-white">Browse internships</a>
+    </div>
+    <p id="selectionHint" class="mt-3 text-sm muted">Choose a role to get started.</p>
+  </section>
+
+  <div class="ctabs" id="ctabs"><span class="cpill" id="cpill"></span>
+    <button type="button" class="ctab on" data-panel="panelAdvice">Improve for this role</button>
+    <button type="button" class="ctab" data-panel="panelChat">Ask a question</button>
+  </div>
+
+  <div id="panelAdvice" class="cpanel">
+  <div class="grid md:grid-cols-3 gap-4">
+    {% for k, t, d, bg in [('gap','What am I missing?','The skills and experience to build, with a simple plan for each.',''),('application','Resume & cover letter','A resume and cover letter tailored to this role.',''),('interview','Interview prep','Technical, project, resume and HR questions with guidance.','')] %}
+    <button id="agentBtn-{{ k }}" onclick="runAgent('{{ k }}')" data-reveal style="transition-delay:{{ loop.index0 * 0.06 }}s" class="card card-hover text-left p-5 {{ bg }}">
+      <h2 class="font-bold text-lg leading-snug">{{ t }}</h2>
+      <p class="mt-1.5 text-sm muted">{{ d }}</p>
+    </button>
+    {% endfor %}
+  </div>
+
+  <section id="resultsCard" class="card mt-5 p-6 hidden animate-pop">
+    <div class="flex items-center justify-between gap-3">
+      <div><p class="eyebrow">Your results</p><h2 id="outputTitle" class="font-display font-extrabold text-2xl mt-1">Choose a tool above</h2></div>
+      <span id="loading" class="hidden items-center gap-2 text-sm font-bold">Working<span class="dot-bounce"><span></span><span></span><span></span></span></span>
+    </div>
+    <div id="output" class="mt-5 text-sm"><p class="muted">Your analysis will appear here.</p></div>
+  </section>
+  </div>
+
+  <div id="panelChat" class="cpanel hidden"><section class="card p-6 bg-white">
+    <p class="eyebrow">Career assistant</p>
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><h2 class="font-bold text-xl mt-1">Ask anything about your search</h2><div class="md:w-72"><label class="lbl">Conversation</label><select id="convSelect" class="input !py-2 !text-sm" onchange="loadConversation(this.value)"><option value="">New conversation</option></select></div></div>
+    <div class="mt-4 flex flex-wrap gap-2">{% for q in ["Recommend suitable internships for me","Compare my top matches","What skills should I learn next?","Should I apply to this role?","Build me a 2-week interview plan"] %}<button type="button" class="chip bg-white hover:bg-mint cursor-pointer" onclick="askQuick(this.textContent)">{{ q }}</button>{% endfor %}</div>
+    <div id="chat" class="mt-5 h-80 overflow-y-auto space-y-3 rounded-2xl bg-soft p-4">
+      <div class="text-sm muted">Start a conversation. The assistant remembers recent context.</div>
+    </div>
+    <div class="mt-4 flex gap-3">
+      <input id="chatInput" class="input flex-1" placeholder="e.g. What should I improve for this role?">
+      <button onclick="sendChat()" class="btn btn-ink">Ask →</button>
+    </div>
+  </section></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let conversationId = null;
+const select = document.getElementById('jobSelect');
+const selectedJob = () => select.value;
+const esc = v => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const txt = v => (v && typeof v === 'object') ? Object.values(v).filter(Boolean).map(txt).join(' - ') : String(v ?? '');
+function list(items, key = 'skill') {
+  if (!items || !items.length) return '<p class="muted">None identified.</p>';
+  return '<ul class="space-y-2">' + items.map(x => `<li class="card-flat bg-white p-3"><b>${esc(x[key] || x.requirement || 'Item')}</b>${x.why_important ? `<div class="muted mt-1">${esc(x.why_important)}</div>` : ''}${x.action ? `<div class="muted mt-1">${esc(x.action)}</div>` : ''}${x.priority ? `<span class="chip mt-2">${esc(x.priority)} priority</span>` : ''}</li>`).join('') + '</ul>';
+}
+function setActive(kind) { ['gap','application','interview'].forEach(k => document.getElementById('agentBtn-' + k).style.outline = k === kind ? '2px solid #4338ca' : 'none'); }
+async function runAgent(kind) {
+  const hint = document.getElementById('selectionHint');
+  if (!selectedJob()) { hint.textContent = 'Please choose an internship first.'; hint.style.color = '#b42318'; const sel = document.getElementById('jobSelect'); sel.classList.remove('shake'); void sel.offsetWidth; sel.classList.add('shake'); sel.focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  setActive(kind);
+  document.getElementById('resultsCard').classList.remove('hidden');
+  document.getElementById('output').innerHTML = '<div class="space-y-3"><div class="skeleton h-5 w-2/3"></div><div class="skeleton h-5 w-full"></div><div class="skeleton h-5 w-5/6"></div><div class="skeleton h-24 w-full"></div></div>';
+  document.getElementById('outputTitle').textContent = 'Working on it…';
+  setTimeout(() => document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  const L = document.getElementById('loading'); L.classList.remove('hidden'); L.classList.add('inline-flex');
+  const ep = { gap: '/api/m3/skill-gap', application: '/api/m3/application', interview: '/api/m3/interview' };
+  try {
+    const r = await fetch(ep[kind], { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ job_id: selectedJob() }) });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error ? d.error + ' ' + (d.detail || '') : 'Something went wrong. Please try again.');
+    render(kind, d);
+  } catch (e) { document.getElementById('outputTitle').textContent = 'That did not work'; document.getElementById('output').innerHTML = `<div class="card-flat bg-blush p-4 font-semibold">${esc(e.message)}</div>`; showToast(e.message, 'error'); }
+  L.classList.add('hidden'); L.classList.remove('inline-flex');
+}
+function render(kind, d) {
+  const o = document.getElementById('output'), T = document.getElementById('outputTitle');
+  o.classList.remove('animate-pop'); void o.offsetWidth; o.classList.add('animate-pop');
+  if (kind === 'gap') {
+    const a = d.analysis || {}; T.textContent = 'Skill gap analysis';
+    o.innerHTML = `<p class="font-medium">${esc(a.summary || '')}</p><div class="grid md:grid-cols-2 gap-4 mt-5"><div><h3 class="eyebrow mb-2">Skills to build first</h3>${list(a.critical_missing_skills)}</div><div><h3 class="eyebrow mb-2">Skills you partly show</h3>${list(a.partially_demonstrated_skills)}</div><div><h3 class="eyebrow mb-2">Nice-to-have skills</h3>${list(a.preferred_skill_gaps)}</div><div><h3 class="eyebrow mb-2">Experience & education</h3>${list([...(a.experience_gaps || []), ...(a.qualification_gaps || [])])}</div></div><div class="mt-5"><h3 class="eyebrow mb-2">Recommendations</h3>${list(a.recommendations, 'gap')}</div>`;
+  } else if (kind === 'application') {
+    const a = d.application || {}, r = a.resume || {}; T.textContent = 'Tailored application';
+    const resumeText = buildResumeText(r);
+    o.innerHTML = `<div class="space-y-6">
+      <div class="grid md:grid-cols-2 gap-5">
+        <div><h3 class="eyebrow">Tailored resume</h3><p class="text-xs muted mt-1 mb-2">Edit freely — nothing here is saved until you press Save.</p><textarea id="resumeEdit" rows="16" class="input font-mono text-xs">${esc(resumeText)}</textarea></div>
+        <div><h3 class="eyebrow">Cover letter</h3><p class="text-xs muted mt-1 mb-2">Review, edit, or ask the AI to refine it.</p><textarea id="coverEdit" rows="16" class="input">${esc(a.cover_letter || '')}</textarea></div>
+      </div>
+      <div class="card-flat bg-lilac p-4">
+        <label class="lbl">Refine with an instruction</label>
+        <div class="flex flex-col md:flex-row gap-3">
+          <input id="refineInstruction" class="input flex-1" placeholder="e.g. Make it shorter and more formal · Emphasise my Flask project">
+          <select id="refineTarget" class="input md:w-44"><option value="cover">Cover letter</option><option value="resume">Tailored resume</option></select>
+          <button id="refineBtn" onclick="refineText()" class="btn btn-ink btn-sm">Refine</button>
+        </div>
+        <p id="refineNote" class="text-xs font-semibold mt-2"></p>
+      </div>
+      <div><h3 class="eyebrow">Priority skills</h3><div class="mt-2 flex flex-wrap gap-2">${(r.priority_skills || []).map(x => `<span class="chip bg-mint">${esc(txt(x))}</span>`).join('') || '<span class="muted">None matched.</span>'}</div></div>
+      <div><h3 class="eyebrow">Integrity checks</h3><ul class="mt-2 list-disc pl-5 muted">${(a.warnings || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="flex flex-wrap gap-3">
+        <button id="saveToTrackerBtn" onclick="saveCover()" class="btn btn-mint btn-sm">Save to tracker</button>
+        <button onclick="downloadText('cover-letter.txt','coverEdit')" class="btn btn-white btn-sm">Download letter</button>
+        <button onclick="downloadText('tailored-resume.txt','resumeEdit')" class="btn btn-white btn-sm">Download resume</button>
+        <button onclick="copyText('coverEdit')" class="btn btn-white btn-sm">Copy letter</button>
+      </div></div>`;
+  } else {
+    const a = d.interview || {}; T.textContent = 'Interview preparation';
+    o.innerHTML = `<div><h3 class="eyebrow">Revision topics</h3><div class="mt-2 flex flex-wrap gap-2">${(a.revision_topics || []).map(x => `<span class="chip bg-lilac">${esc(txt(x))}</span>`).join('')}</div><h3 class="eyebrow mt-5">Preparation plan</h3><ol class="mt-2 list-decimal pl-5 space-y-1">${(a.preparation_plan || []).map(x => `<li>${esc(txt(x))}</li>`).join('')}</ol><h3 class="eyebrow mt-5">Questions</h3><div class="mt-2 space-y-3">${(a.questions || []).map(q => `<details class="card-flat bg-white p-4"><summary class="cursor-pointer font-semibold"><span class="chip bg-blush mr-2">${esc(q.type)}</span>${esc(q.question)}</summary><p class="mt-3 muted">${esc(q.preparation_guidance || '')}</p></details>`).join('')}</div>
+      <div class="card mt-8 p-5 bg-blush">
+        <p class="eyebrow">Mock interview</p>
+        <h3 class="font-display font-extrabold text-xl mt-1">Practise an answer and get feedback</h3>
+        <label class="lbl mt-4">Question</label>
+        <select id="mockQuestion" class="input">${(a.questions || []).map((q, i) => `<option value="${i}">[${esc(q.type)}] ${esc(q.question)}</option>`).join('')}</select>
+        <label class="lbl mt-3">Your answer</label>
+        <textarea id="mockAnswer" rows="5" class="input" placeholder="Type your answer as you would say it in the interview…"></textarea>
+        <div class="mt-3 flex items-center gap-3"><button id="mockBtn" onclick="evaluateMock()" class="btn btn-ink btn-sm">Get feedback</button><span id="mockLoading" class="hidden text-sm font-bold">Evaluating…</span></div>
+        <div id="mockResult" class="mt-4"></div>
+      </div></div>`;
+    window.__questions = a.questions || [];
+  }
+}
+function buildResumeText(r) {
+  const parts = [];
+  if (r.headline) parts.push(r.headline.toUpperCase());
+  if (r.professional_summary) parts.push('SUMMARY\n' + r.professional_summary);
+  if ((r.priority_skills || []).length) parts.push('SKILLS\n' + r.priority_skills.join(', '));
+  if ((r.priority_projects || []).length) parts.push('PROJECTS\n' + r.priority_projects.map(p => '• ' + (p.project_name || 'Project') + (p.technologies && p.technologies.length ? ' [' + p.technologies.join(', ') + ']' : '') + (p.description ? '\n  ' + p.description : '')).join('\n'));
+  const bullets = (r.bullet_improvements || []).filter(b => b.suggested);
+  if (bullets.length) parts.push('SUGGESTED BULLET WORDING\n' + bullets.map(b => '• ' + b.suggested).join('\n'));
+  if ((r.keywords_used || []).length) parts.push('KEYWORDS COVERED\n' + r.keywords_used.join(', '));
+  if ((r.section_order || []).length) parts.push('RECOMMENDED SECTION ORDER\n' + r.section_order.join(' → '));
+  return parts.join('\n\n');
+}
+async function refineText() {
+  const jobId = selectedJob(), instruction = document.getElementById('refineInstruction').value.trim();
+  const targetId = document.getElementById('refineTarget').value === 'cover' ? 'coverEdit' : 'resumeEdit';
+  if (!instruction) { showToast('Add an instruction first.', 'error'); return; }
+  const btn = document.getElementById('refineBtn'); btn.disabled = true; btn.textContent = 'Refining…';
+  try {
+    const r = await fetch('/api/m3/application/refine', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ job_id: jobId, text: document.getElementById(targetId).value, instruction }) });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not refine.');
+    document.getElementById(targetId).value = d.text; document.getElementById('refineNote').textContent = d.note || '';
+  } catch (e) { showToast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Refine';
+}
+function downloadText(name, id) {
+  const blob = new Blob([document.getElementById(id).value], { type: 'text/plain' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+async function copyText(id) { try { await navigator.clipboard.writeText(document.getElementById(id).value); showToast('Copied.', 'success'); } catch { showToast('Copy failed.', 'error'); } }
+async function evaluateMock() {
+  const q = (window.__questions || [])[document.getElementById('mockQuestion').value], answer = document.getElementById('mockAnswer').value.trim();
+  if (!answer) { showToast('Write an answer first.', 'error'); return; }
+  const btn = document.getElementById('mockBtn'); btn.disabled = true; document.getElementById('mockLoading').classList.remove('hidden');
+  try {
+    const r = await fetch('/api/m3/mock-interview/evaluate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ job_id: selectedJob(), question: q.question, answer }) });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Evaluation failed.');
+    const li = arr => (arr || []).map(x => `<li>${esc(x)}</li>`).join('');
+    document.getElementById('mockResult').innerHTML = `<div class="animate-pop card-flat bg-white p-4"><div class="flex items-center gap-4"><span class="font-display font-extrabold text-5xl leading-none">${d.score ?? '—'}<span class="text-lg muted">/100</span></span><p class="text-sm font-semibold">Feedback on your answer</p></div><div class="grid md:grid-cols-2 gap-4 mt-4"><div><h4 class="eyebrow">Strengths</h4><ul class="mt-2 list-disc pl-5 text-sm">${li(d.strengths)}</ul></div><div><h4 class="eyebrow">To improve</h4><ul class="mt-2 list-disc pl-5 text-sm">${li(d.improvements)}</ul></div></div><h4 class="eyebrow mt-4">Model answer outline</h4><ol class="mt-2 list-decimal pl-5 text-sm">${li(d.model_answer_outline)}</ol></div>`;
+  } catch (e) { showToast(e.message, 'error'); }
+  btn.disabled = false; document.getElementById('mockLoading').classList.add('hidden');
+}
+function bubble(cls, html) { const c = document.getElementById('chat'), b = document.createElement('div'); b.className = 'animate-pop rounded-xl border-2 border-ink p-3 ' + cls; b.innerHTML = html; c.appendChild(b); c.scrollTop = c.scrollHeight; return b; }
+async function sendChat() {
+  const input = document.getElementById('chatInput'), msg = input.value.trim(); if (!msg) return;
+  bubble('bg-mint ml-8', `<b>You</b><div class="mt-1">${esc(msg)}</div>`); input.value = '';
+  const typing = bubble('bg-white mr-8', '<span class="dot-bounce"><span></span><span></span><span></span></span>');
+  try {
+    const r = await fetch('/api/m3/career/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: msg, conversation_id: conversationId, job_id: selectedJob() || null }) });
+    const d = await r.json(); typing.remove();
+    if (!r.ok) { bubble('bg-blush', `<b>${esc(d.error || 'Assistant error')}</b>${d.detail ? `<div class="text-xs mt-1">${esc(d.detail)}</div>` : ''}`); return; }
+    const isNew = !conversationId; conversationId = d.conversation_id; if (isNew) refreshConversations(conversationId);
+    bubble('bg-white mr-8', `<b>Career Assistant</b><div class="mt-1 whitespace-pre-wrap">${esc(d.response?.answer || '')}</div>`);
+  } catch { typing.remove(); showToast('Could not reach the assistant.', 'error'); }
+}
+function askQuick(text) { document.getElementById('chatInput').value = text; sendChat(); }
+async function refreshConversations(selectId) {
+  try {
+    const d = await (await fetch('/api/m3/career/conversations')).json();
+    const sel = document.getElementById('convSelect');
+    sel.innerHTML = '<option value="">New conversation</option>' + (d.conversations || []).map(c => '<option value="' + c.id + '">' + esc(c.title || 'Conversation') + ' · ' + esc(c.updated_at.slice(0, 16).replace('T', ' ')) + '</option>').join('');
+    if (selectId) sel.value = selectId;
+  } catch {}
+}
+async function loadConversation(id) {
+  const chat = document.getElementById('chat'); chat.innerHTML = '';
+  if (!id) { conversationId = null; chat.innerHTML = '<div class="text-sm muted">Start a conversation. The assistant remembers recent context.</div>'; return; }
+  const d = await (await fetch('/api/m3/career/conversations/' + id)).json(); conversationId = d.id;
+  (d.messages || []).forEach(m => bubble(m.role === 'user' ? 'bg-mint ml-8' : 'bg-white mr-8', '<b>' + (m.role === 'user' ? 'You' : 'Career Assistant') + '</b><div class="mt-1 whitespace-pre-wrap">' + esc(m.content) + '</div>'));
+}
+async function saveCover() {
+  const jobId = selectedJob(); if (!jobId) return;
+  const letter = document.getElementById('coverEdit').value, resume = document.getElementById('resumeEdit').value;
+  const btn = document.getElementById('saveToTrackerBtn'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    let r = await fetch('/api/applications', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ job_id: jobId, cover_letter: letter, tailored_resume: resume, status: 'planning' }) });
+    let d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save.');
+    if (d.existing) { r = await fetch('/api/applications/' + d.application.id, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ cover_letter: letter, tailored_resume: resume }) }); d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save.'); }
+    btn.textContent = 'Saved ✓'; showToast('Letter and tailored resume saved to your tracker.', 'success');
+  } catch (e) { btn.disabled = false; btn.textContent = 'Save to tracker'; showToast(e.message, 'error'); }
+}
+refreshConversations();
+document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+select.addEventListener('change', () => { document.getElementById('selectionHint').textContent = selectedJob() ? 'Great - pick a tool below or ask the assistant.' : 'Choose a role to get started.'; });
+(function () { const j = new URLSearchParams(location.search).get('job_id'); if (j && [...select.options].some(o => o.value === j)) { select.value = j; select.dispatchEvent(new Event('change')); } })();
+</script>
+
+<style>
+  .ctabs { position:relative; display:flex; gap:4px; padding:5px; background:rgba(15,23,42,.05); border-radius:999px; width:max-content; max-width:100%; margin:22px 0 20px; }
+  .ctab { position:relative; z-index:1; border:0; background:transparent; padding:.6rem 1.2rem; border-radius:999px; font:600 .88rem Inter,sans-serif; color:#475569; cursor:pointer; white-space:nowrap; transition:color .2s; }
+  .ctab.on { color:#4338ca; }
+  .cpill { position:absolute; z-index:0; top:5px; bottom:5px; left:0; border-radius:999px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.10); transition:transform .4s cubic-bezier(.22,1,.36,1), width .4s cubic-bezier(.22,1,.36,1); }
+  .shake { animation:shakeX .45s; border-color:#ef4444!important; }
+  @keyframes shakeX { 20%,60% { transform:translateX(-6px); } 40%,80% { transform:translateX(6px); } }
+  .cpanel { animation:rise .45s cubic-bezier(.22,1,.36,1) both; }
+  .cpanel.hidden { display:none; }
+  #resultsCard.hidden { display:none; }
+  #resultsCard, #panelChat { scroll-margin-top:90px; }
+</style>
+<script>
+(function () {
+  var tabs = [].slice.call(document.querySelectorAll('.ctab')), pill = document.getElementById('cpill');
+  function place(t) { pill.style.width = t.offsetWidth + 'px'; pill.style.transform = 'translateX(' + t.offsetLeft + 'px)'; }
+  function pick(t) {
+    tabs.forEach(function (x) { x.classList.toggle('on', x === t); document.getElementById(x.dataset.panel).classList.toggle('hidden', x !== t); });
+    place(t);
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { pick(t); }); });
+  pick(tabs[0]); if (document.fonts) document.fonts.ready.then(function () { place(document.querySelector('.ctab.on')); });
+  window.addEventListener('resize', function () { place(document.querySelector('.ctab.on')); });
+})();
+</script>
+{% endblock %}

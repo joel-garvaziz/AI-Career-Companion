@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+  <div data-reveal>
+    <h1 class="font-display text-3xl">Settings</h1>
+    <p class="mt-1 muted">Manage your account, security and data.</p>
+  </div>
+
+  <section data-reveal class="card mt-6">
+    <div class="p-6 border-b border-line"><h2 class="font-semibold">Account</h2><p class="text-sm muted">Your name and sign-in email.</p></div>
+    <form method="post" action="{{ url_for('settings_account') }}" class="p-6 grid md:grid-cols-2 gap-4">
+      <div><label class="lbl">Full name</label><input class="input" name="full_name" value="{{ student.full_name }}" required></div>
+      <div><label class="lbl">Email</label><input class="input" type="email" name="email" value="{{ student.email }}" required></div>
+      <div class="md:col-span-2 flex justify-end"><button class="btn btn-ink">Save changes</button></div>
+    </form>
+  </section>
+
+  <section data-reveal class="card mt-6">
+    <div class="p-6 border-b border-line"><h2 class="font-semibold">Password</h2><p class="text-sm muted">Use at least 8 characters.</p></div>
+    <form method="post" action="{{ url_for('settings_password') }}" class="p-6 grid md:grid-cols-3 gap-4">
+      <div><label class="lbl">Current password</label><input class="input" type="password" name="current_password" required autocomplete="current-password"></div>
+      <div><label class="lbl">New password</label><input class="input" type="password" name="new_password" minlength="8" required autocomplete="new-password"></div>
+      <div><label class="lbl">Confirm new password</label><input class="input" type="password" name="confirm_password" minlength="8" required autocomplete="new-password"></div>
+      <div class="md:col-span-3 flex justify-end"><button class="btn btn-white">Update password</button></div>
+    </form>
+  </section>
+
+  <section data-reveal class="card mt-6">
+    <div class="p-6 border-b border-line"><h2 class="font-semibold">Your data</h2><p class="text-sm muted">Everything is stored locally and scoped to your account.</p></div>
+    <div class="p-6 flex flex-col md:flex-row md:items-center gap-5 justify-between">
+      <div class="grid grid-cols-4 gap-6 text-center">
+        {% for label, v in [('Skills', counts.skills), ('Resumes', counts.resumes), ('Applications', counts.applications), ('Chats', counts.conversations)] %}
+        <div><p class="text-2xl font-semibold tnum">{{ v }}</p><p class="text-xs muted">{{ label }}</p></div>
+        {% endfor %}
+      </div>
+      <a href="{{ url_for('settings_export') }}" class="btn btn-white">Download my data</a>
+    </div>
+  </section>
+
+  <section data-reveal class="card mt-6" style="border-color:#f5b5c0">
+    <div class="p-6 border-b" style="border-color:#f5b5c0"><h2 class="font-semibold" style="color:#b42318">Delete account</h2><p class="text-sm muted">Permanently removes your profile, resumes, applications and conversations. This cannot be undone.</p></div>
+    <form method="post" action="{{ url_for('settings_delete') }}" class="p-6 flex flex-col md:flex-row gap-3 md:items-end" onsubmit="askDelete(event)">
+      <div class="flex-1"><label class="lbl">Confirm with your password</label><input class="input" type="password" name="password" required autocomplete="current-password"></div>
+      <button class="btn btn-danger">Delete my account</button>
+    </form>
+  </section>
+</div>
+<script>
+async function askDelete(e) {
+  e.preventDefault(); const f = e.target;
+  if (await confirmDialog('This permanently removes your profile, resumes, applications and chats. This cannot be undone.', { title: 'Delete your account?', confirmLabel: 'Yes, delete everything' })) f.submit();
+}
+</script>
+{% endblock %}
